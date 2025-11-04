@@ -1,37 +1,9 @@
-.PHONY: setup install fmt lint test check validate dev run clean
-
-VENV := .venv
-PY := $(VENV)/bin/python
-PIP := $(VENV)/bin/pip
-UVICORN := $(VENV)/bin/uvicorn
-RUFF := $(VENV)/bin/ruff
-BLACK := $(VENV)/bin/black
-ISORT := $(VENV)/bin/isort
-PYTEST := $(VENV)/bin/pytest
-
-setup install:
-	python3 -m venv $(VENV)
-	$(PIP) install --upgrade pip
-	$(PIP) install -r requirements.txt
-
+.PHONY: fmt lint test check validate
 fmt:
-	$(BLACK) src tests
-	$(ISORT) src tests
-
+	@echo "(fmt) nada a fazer — será definido conforme o PRD"
 lint:
-	$(RUFF) check src tests
-
+	@echo "(lint) nada a fazer — será definido conforme o PRD"
 test:
-	PYTHONPATH=src $(PYTEST) -q
-
-dev:
-	PYTHONPATH=src $(UVICORN) app.main:app --reload --host 0.0.0.0 --port 8000
-
-run:
-	PYTHONPATH=src $(UVICORN) app.main:app --host 0.0.0.0 --port 8000
-
+	@echo "(test) nada a fazer — será definido conforme o PRD"
 check validate:
 	bash scripts/validate.sh
-
-clean:
-	rm -rf $(VENV) .pytest_cache .ruff_cache .mypy_cache

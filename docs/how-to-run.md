@@ -1,29 +1,13 @@
-# Como rodar — Python FastAPI
+# Como rodar (esqueleto)
 
-Pré‑requisitos: Python 3.11+, make, git
+Este projeto é um template “LLM‑safe”. O stack (linguagem/framework) será definido no PRD.md e a LLM (ou o time) deve atualizar este documento conforme a escolha.
 
-1) Instalar dependências (ambiente local)
-- `make setup`
+Ao definir a stack no PRD, inclua aqui:
+- Pré‑requisitos (versão da linguagem, gerenciador de pacotes, Docker, etc.)
+- Comandos de setup (ex.: `npm ci`, `pip install -r requirements.txt`, `docker compose up`)
+- Como rodar em desenvolvimento (reload/hot‑reload)
+- Como rodar testes, lint e formatadores
+- Como configurar variáveis de ambiente (e `.env.example`)
+- Como executar build e/ou iniciar em produção
 
-2) Rodar em desenvolvimento (reload)
-- `make dev`
-- Acesse: http://localhost:8000
-- Docs: http://localhost:8000/docs
-
-3) Testes e qualidade
-- `make test`
-- `make lint`
-- `make fmt`
-
-4) Variáveis de ambiente
-- Copie `.env.example` para `.env` e ajuste se necessário
-  - `APP_NAME`, `APP_ENV`, `DEBUG`
-
-5) Produção (básico)
-- `make run` (sem reload)
-- Para produção real, use um process manager (systemd/supervisor) ou conteinerize (Docker)
-
-6) Estrutura relevante
-- `src/app/main.py`: criação do FastAPI e rotas principais
-- `src/app/api/routes.py`: endpoints (`/api/healthz`, `/api/version`)
-- `tests/`: testes com `pytest`
+Dica: mantenha os comandos reunidos em `Makefile` ou `justfile` para padronizar DX.
