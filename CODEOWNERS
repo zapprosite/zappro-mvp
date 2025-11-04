@@ -1,7 +1,9 @@
 # Ajuste para seus usuários/equipes
-* @seu-usuario
+* @jpmarcenaria
 
 # Áreas críticas
-/.github/workflows/ @seu-usuario
-/scripts/ @seu-usuario
-/.codex/ @seu-usuario
+/.github/workflows/ @jpmarcenaria
+/scripts/ @jpmarcenaria
+/.codex/ @jpmarcenaria
+/secrets/ @jpmarcenaria
+/infra/ @jpmarcenaria
