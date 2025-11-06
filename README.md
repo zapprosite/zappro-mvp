@@ -1,82 +1,87 @@
-# exemplo-repo — LLM‑Safe Full‑Stack Template
+# ZapPro — Bootstrap da Plataforma
 
-Um template pensado para trabalhar com LLMs sem alucinação: PRD como fonte única de verdade, regras claras para agentes e validação automatizada em CI.
+Baseline da ZapPro para a Fase 0 (Bootstrap) com backend FastAPI 3.11 e frontend Next.js 15. O objetivo é disponibilizar endpoints de saúde, pipelines de lint/test, documentação mínima e infraestrutura local via Docker Compose.
 
-## Por que este template?
-- Fonte única: `PRD.md` concentra visão, escopo, arquitetura e critérios de aceite.
-- Guardrails para LLMs: `AGENTS.md` + `.codex/policy.json` limitam o que pode ser alterado.
-- Qualidade como contrato: `scripts/validate.sh` e CI bloqueiam alterações fora do padrão.
-- Deltas atômicos: pequenas mudanças com testes e docs atualizados.
+## Stack
+- **Backend**: Python 3.11, FastAPI, SQLAlchemy, Alembic, Pytest, Ruff, Black, Isort
+- **Frontend**: Next.js 15 (App Router), TypeScript, TailwindCSS v4, shadcn/ui, Zustand, TanStack Query
+- **Banco**: PostgreSQL 16 (Docker Compose)
+- **CI**: GitHub Actions executando lint, testes, format check e script `scripts/validate.sh`
 
-## Como usar
-1. Copie este repositório (ou duplique a pasta) para um novo projeto.
-2. Edite `PRD.md` com seu produto (preencha os campos `< >`).
-3. Ajuste `CODEOWNERS` para seu usuário/equipe.
-4. Rode `bash scripts/validate.sh` e garanta OK local.
-5. Oriente a LLM: “Leia `PRD.md` e siga `AGENTS.md` para iniciar o Bootstrap (Fase 0)”.
-6. Abra PRs pequenos; CI deve ficar verde.
+## Estrutura de Pastas
+- `src/` — código da API FastAPI (`src/main.py` com `/health`)
+- `tests/` — testes Pytest (verificação de health/version)
+- `frontend/` — aplicação Next.js (`/health` expõe mesmo JSON)
+- `alembic/` — placeholders para migrations futuras
+- `scripts/` — automações (`validate.sh`, `pre-commit.sh`)
+- `docker/` — Dockerfiles da API e do frontend
+- `docs/` — documentação complementar
 
-## Antes de iniciar com a LLM (humano)
-- Preencha a Seção 0 do `PRD.md` (stack) e as seções mínimas do PRD.
-- Remova o guia humano (opcional, recomendado):
-  - `git rm Guia.md && git commit -m "docs: remove Guia.md (PRD concluído; iniciar LLM)"`
-- Use o prompt sugerido abaixo para iniciar a Fase 0 com a LLM.
+## Pré-requisitos
+- Python 3.11+
+- Node.js 20+
+- Docker / Docker Compose (opcional)
+- `make`, `curl`, `git`
 
-Prompt sugerido (cole para a LLM):
-"""
-Leia PRD.md e obedeça estritamente AGENTS.md e .codex/policy.json. Confirme a stack escolhida na Seção 0 do PRD e proponha um plano curto para a Fase 0 (Bootstrap). Em seguida, implemente apenas o mínimo necessário:
-- Scaffold em src/** (ou estrutura equivalente), endpoint/rota de saúde;
-- Arquivos de dependências e scripts (fmt, lint, test, dev, run) via Makefile/justfile;
-- Atualize docs/how-to-run.md com comandos concretos;
-- Mantenha diffs pequenos, sem tocar secrets/ e infra/prod/;
-- Rode scripts/validate.sh localmente (simular) e descreva validação.
-Abra um PR pequeno com escopo, riscos, validação e próximos passos para a Fase 1.
-"""
+## Setup Rápido
+```bash
+make install           # cria venv e instala requirements
+cd frontend && npm install
+```
 
-## Estrutura
-- `PRD.md`: requisitos do produto e guia para execução por fases.
-- `AGENTS.md`: regras e limites para agentes (paths, estilo, validação).
-- `.codex/policy.json`: política legível por máquina (allow/deny, limites, padrões proibidos).
-- `scripts/policy-check.sh`: aplica a política no diff do PR.
-- `scripts/validate.sh`: checagens mínimas e execução do policy‑check.
-- `.github/workflows/ci.yml`: CI que valida alterações em push/PR.
-- `docs/`: arquitetura e “como rodar”.
-- `Makefile`: alvos `check/validate` (ajuste `fmt/lint/test` no projeto real).
+## Comandos Principais
+```bash
+make dev               # inicia API FastAPI (uvicorn --reload)
+cd frontend && npm run dev
 
-## Fluxo LLM‑first
-- Bootstrap (Fase 0): criar skeleton em `src/`, `tests/`, `docs/`, ajustar `README`, ligar CI.
-- MVP (Fase 1): implementar funcionalidades essenciais conforme `PRD.md`.
-- Iteração (Fase 2): performance, observabilidade, segurança, DX.
+make lint              # ruff + black --check + isort --check
+make fmt               # aplica formatação (ruff fix, isort, black)
+make test              # pytest
+bash scripts/pre-commit.sh   # lint + test + security scan
+bash scripts/validate.sh     # lint, test, healthcheck automatizado
+make security          # ruff --unsafe, bandit, pip-audit, secret scan, npm audit
+bash scripts/dependency-watch.sh  # monitora updates (pip/npm) e registra em logs/dependency-watch.log
+cd frontend && npm run test:e2e  # Playwright security smoke
+```
 
-## Stack é definida pelo PRD
-- Este template não impõe linguagem/framework.
-- Defina a stack no `PRD.md` e, então, a LLM deve criar os arquivos necessários (ex.: Node/Next, Python/FastAPI, etc.), atualizar `docs/how-to-run.md` e ajustar `Makefile`.
+## Docker Compose
+```bash
+cp .env.example .env
+docker compose up --build
+```
+- API: `http://localhost:8000/health`
+- Frontend: `http://localhost:3000` (Next dev server)
+- Postgres: `postgres://zappro:change_me@localhost:5432/zappro`
 
-## Resumo das Fases (0→6)
-- Fase 0 — Bootstrap: skeleton, scripts (`fmt/lint/test/dev/run`), docs e CI
-- Fase 1 — MVP: funcionalidades essenciais com testes e docs
-- Fase 2 — Observabilidade e Qualidade: logs, métricas, tracing, cobertura
-- Fase 3 — Infra e Deploy: containerização, migrations, staging, secrets e deploy
-- Fase 4 — Performance e Segurança: caching, hardening, a11y
-- Fase 5 — Escala e DX: filas, rate‑limit, docs de API, DX
-- Fase 6 — Release e Manutenção: versionamento, backups, SLOs
+## Health Endpoints
+- Backend: `GET http://localhost:8000/health → {"status":"ok","version":"0.1.0"}`
+- Frontend: `GET http://localhost:3000/health → {"status":"ok","version":"0.1.0"}`
 
-Detalhes e checklists em `PRD.md` (Seção “20. Detalhamento das Fases”).
+## Validação Local
+```bash
+make lint
+make test
+bash scripts/validate.sh
+```
+O script liga a API, chama `/health` e encerra o servidor. Log detalhado fica em `logs/`.
 
-## Diretrizes para LLMs
-- Leia `PRD.md` e proponha um plano curto de execução.
-- Só altere caminhos permitidos na política; mantenha diffs pequenos.
-- Atualize testes e docs junto com o código; execute `scripts/validate.sh`.
-- Abra PR descrevendo escopo, riscos, validação e próximos passos.
+## Segurança e Auditoria
+- Middleware adiciona CSP, Referrer-Policy, Permissions-Policy, `X-Content-Type-Options`, `X-Frame-Options`, `X-API-Version`, rate-limit configurável (env `ZAPPRO_RATE_LIMIT__*` com TTL/limite) e tratamento de request-id com detecção de colisões; trusted hosts aceitam string ou JSON (`ZAPPRO_ALLOWED_HOSTS`).
+- `scripts/security-scan.sh` consolida `ruff --unsafe`, `bandit`, `pip-audit`, `scripts/secret-scan.sh` e `npm audit`. Resultados ficam em `logs/security.log`.
+- Playwright (`frontend/tests/security.spec.ts`) valida JSON do `/health` e cabeçalhos de segurança do Next.js.
+- `scripts/backup.sh` / `scripts/restore.sh` criam snapshots em `backups/`; `scripts/daily-health.sh` monitora endpoints e ignora ambientes offline.
+- `scripts/dependency-watch.sh` registra libs desatualizadas e reforça monitoramento de FastAPI/Starlette (veja `logs/dependency-watch.log`).
+- Sample cron/Kestra:
+  ```
+  0 2 * * * cd /path/zappro && bash scripts/security-scan.sh >> logs/security.log 2>&1
+  0 4 * * 1 cd /path/zappro && bash scripts/dependency-watch.sh >> logs/dependency-watch.log 2>&1
+  ```
+- Conhecido: `pip-audit` reporta CVEs no `starlette 0.38.6` (dependência indireta do FastAPI 0.115). A correção exige aguardar bump do FastAPI; monitore e atualize assim que possível.
 
-## Começar agora
-- Local:
-  - `bash scripts/validate.sh`
-  - Edite `PRD.md` e `CODEOWNERS`
-  - Consulte `Guia.md` para o passo‑a‑passo operacional
-- Git remoto:
-  - `git remote add origin <URL>`
-  - `git push -u origin main`
+## Próximos Passos (Fase 1)
+1. Definir modelos de domínio e migrations iniciais.
+2. Implementar autenticação/JWT e módulos de obras, equipes e materiais.
+3. Conectar frontend aos endpoints reais e montar dashboards.
 
-## Licença
-- Defina a licença adequada ao seu projeto (`LICENSE`).
+> ⚠️ Só adicionar variáveis sensíveis reais após configurar Vault/segredos da infra. Use `.env.example` como referência.
+# zappro-mvp
