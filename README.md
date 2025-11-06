@@ -1,5 +1,7 @@
 # ZapPro — Bootstrap da Plataforma
 
+> **Antes de iniciar:** revise o guia [`guia-secrets.md`](guia-secrets.md) para configurar variáveis de ambiente e segredos com segurança.
+
 Baseline da ZapPro para a Fase 0 (Bootstrap) com backend FastAPI 3.11 e frontend Next.js 15. O objetivo é disponibilizar endpoints de saúde, pipelines de lint/test, documentação mínima e infraestrutura local via Docker Compose.
 
 ## Stack
