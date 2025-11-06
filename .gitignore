@@ -12,6 +12,8 @@ Thumbs.db
 # Logs
 logs/
 *.log
+!audit.log
+!security.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -32,6 +34,8 @@ build/
 out/
 coverage/
 lerna-debug.log
+playwright-report/
+test-results/
 
 # Python
 __pycache__/
@@ -59,3 +63,6 @@ target/
 # Go
 bin/
 vendor/
+
+# Backups
+backups/*.tar.gz

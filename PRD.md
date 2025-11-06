@@ -1,212 +1,302 @@
-# PRD — Template Full‑Stack (LLM‑Safe)
+# PRD — ZapPro Plataforma Full‑Stack (LLM‑Safe)
 
-Este PRD é a fonte única de verdade do projeto e guia tanto humanos quanto LLMs. Preencha os campos entre `< >` de acordo com seu produto.
+Este PRD é a única fonte de verdade do produto e guia times e LLMs para evolução segura e padronizada.
 
-## 0. Guia de Início: Stack e Dependências (Padrão e Exemplos)
-- Escolha a stack (linguagem + framework + runtime) aqui e mantenha consistente ao longo do projeto. A LLM deve seguir esta escolha ao criar arquivos de bootstrap.
-- Preencha:
-  - Linguagem: `<ex.: Python | Node.js | Go | .NET | Java>`
-  - Framework: `<ex.: FastAPI | Django | Next.js | NestJS | Spring>`
-  - Banco de dados: `<ex.: PostgreSQL | MySQL | SQLite | MongoDB>`
-  - ORM/Migrations: `<ex.: SQLAlchemy + Alembic | Prisma | TypeORM | Django ORM>`
-  - Testes: `<ex.: pytest | vitest | jest | go test>`
-  - Lint/Format: `<ex.: ruff+black+isort | eslint+prettier | golangci-lint>`
-  - Empacotamento/Execução: `<ex.: Docker Compose | PM2 | gunicorn+uvicorn | systemd>`
+***
 
-Exemplos comuns (escolha um ou edite):
-- Python (API) — FastAPI + PostgreSQL
-  - Deps: `fastapi`, `uvicorn[standard]`, `pydantic`, `sqlalchemy`, `alembic`, `psycopg[binary]`
-  - Testes/Qualidade: `pytest`, `httpx`, `ruff`, `black`, `isort`
-- Node (Full‑stack) — Next.js + Prisma + PostgreSQL
-  - Deps: `next`, `react`, `@prisma/client`, `prisma`, `zod`, `axios`
-  - Testes/Qualidade: `vitest`/`jest`, `eslint`, `prettier`, `lint-staged`, `husky`
-- Node (API) — NestJS + PostgreSQL
-  - Deps: `@nestjs/*`, `class-validator`, `class-transformer`, `prisma`/`typeorm`
-  - Testes/Qualidade: `jest`, `eslint`, `prettier`
-- Python (API) — Django REST Framework
-  - Deps: `django`, `djangorestframework`, `psycopg`, `django-environ`
-  - Testes/Qualidade: `pytest-django`, `ruff`, `black`, `isort`
-- Go (API) — Gin + Gorm + PostgreSQL
-  - Deps: `github.com/gin-gonic/gin`, `gorm.io/gorm`, `github.com/lib/pq`
-  - Testes/Qualidade: `go test`, `golangci-lint`
+## 0. Guia de Início: Stack e Dependências
 
-Checklist de Bootstrap (independente da stack):
-- [ ] `README.md` atualizado com stack, como rodar e scripts
-- [ ] `docs/how-to-run.md` com comandos concretos
-- [ ] `Makefile`/`justfile` com `fmt`, `lint`, `test`, `dev`, `run`
-- [ ] `src/` scaffold mínimo + endpoint/rota de saúde
-- [ ] Testes básicos (health/version)
-- [ ] `.gitignore`, `.editorconfig`, `AGENTS.md`, `.codex/policy.json`
+- Linguagem: Python 3.11+
+- Framework: FastAPI 0.115+
+- Banco de dados: PostgreSQL 16
+- ORM/Migrations: SQLAlchemy 2.x + Alembic 1.13+
+- Testes: pytest 8.x, httpx, Playwright (frontend)
+- Lint/Format: ruff, black, isort
+- Empacotamento/Execução: Docker Compose para dev/local, Kubernetes/EKS produção
+
+**Frontend:**
+- Framework: Next.js 15, TypeScript 5+
+- Forms/UI: Shadcn/ui, TailwindCSS, Zustand/TanStack Query
+- Testes: Playwright
+- Lint: eslint, prettier
+
+**AI e Automações:**
+- LangChain 1.0, LangGraph 1.0+
+- Kestra (>=0.19), n8n (>=1.65)
+
+**Outros:**
+- CI/CD: GitHub Actions, FluxCD
+- Containerização: Docker, docker-compose
+- IaC: Pulumi/Terraform
+- Observabilidade: Sentry, Datadog, Posthog, LangSmith
+- Gerenciamento de segredos: Vault
+
+**Checklist Bootstrap:**
+- [ ] README.md atualizado stack rodando e comandos
+- [ ] docs/how-to-run.md com comandos concretos de exec/test/build
+- [ ] Makefile ou justfile (`fmt`, `lint`, `test`, `dev`, `run`)
+- [ ] src/ scaffold mínimo + health-check endpoint
+- [ ] Teste mínimo health/version
+- [ ] .gitignore, .editorconfig, AGENTS.md, .codex/policy.json
+
+***
 
 ## 1. Visão Geral
-- Nome do produto: `<nome>`
-- Contexto: `<contexto do negócio e problema macro>`
-- Objetivo: `<resultado desejado>`
-- Métricas de sucesso (KPIs/OKRs): `<métricas e metas>`
+
+- Nome: ZapPro Plataforma Autônoma Construção Civil e HVAC-R
+- Contexto: PME de construção civil enfrentam alto desperdício, baixa digitalização e dificuldades de coordenação/automação operacional.
+- Objetivo: Reduzir custos, aumentar produtividade e automatizar decisões e execuções operacionais via workflows e assistentes inteligentes integrados.
+- Métricas de sucesso:
+   - MVP lançado em até 4 meses
+   - Ativação ≥ 100 clientes beta em 6 meses
+   - Redução de >30% custos operacionais dos clientes
+   - NPS ≥ 8 após onboarding
+   - SLA uptime >99,5%
+
+***
 
 ## 2. Problema e Objetivos
-- Problema principal: `<o que precisa ser resolvido>`
-- Objetivos mensuráveis: `<lista de objetivos com metas>`
-- Não‑objetivos (fora de escopo): `<o que não será feito>`
+
+- Problema principal: Falta de automação, controle e integração digital nas rotinas centrais das obras, gerando retrabalho, atrasos e custos extras.
+- Objetivos mensuráveis:
+   - Gerenciar obras e equipes c/ fluxo unificado
+   - Orquestrar tarefas, materiais, documentos e comunicações end-to-end
+   - Prover IA assistiva (RAG+tool-calling) para dúvidas/decisões técnicas
+   - Implantar automação de notificações, pagamentos e orçamentos
+- Não‑objetivos (fora do escopo MVP):
+   - ERP próprio (apenas integrações)
+   - App mobile nativo (PWA, sim)
+   - Contabilidade/fiscal profunda
+
+***
 
 ## 3. Público‑Alvo e Personas
-- Personas: `<persona 1, persona 2>`
-- Principais cenários de uso: `<cenário → objetivo → valor>`
+
+- Personas:
+    - Gestor de obra/engenheiro
+    - Mestre de obras/encarregado de campo
+    - Almoxarife/responsável por materiais
+    - Pequenos e médios empreiteiros
+    - Operador de equipe móvel
+- Cenários principais:
+    - Cadastro e acompanhamento de obras, controle de tarefas e equipes, baixa/lote de materiais, geração e acompanhamento de orçamentos, recebimento de alertas, consulta rápida a informações técnicas via IA.
+
+***
 
 ## 4. Roadmap por Fases
-- Fase 0 — Bootstrap: skeleton, CI, docs, ambiente e qualidade.
-- Fase 1 — MVP: funcionalidades essenciais para validar valor.
-- Fase 2 — Observabilidade e Qualidade: testes, logs, métricas, segurança básica.
-- Fase 3 — Infra e Deploy: containerização, migrations, staging, secrets e deploy.
-- Fase 4 — Performance e Segurança: caching, perf, hardening, a11y.
-- Fase 5 — Escala e DX: filas/jobs, rate‑limit, DX, documentação de APIs.
-- Fase 6 — Release e Manutenção: versionamento, releases, SLOs, backups.
+
+- F0 — Bootstrap: scaffold, ci, pipeline, health, ambiente dev rodando
+- F1 — MVP: login, projetos, equipe, materiais, tarefas/documentos, API básica, rotinas principais
+- F2 — Observabilidade e Qualidade: logs, métricas, testes, cov. inicial, alertas
+- F3 — Infra e Deploy: docker/k8s, migrations, ambientes, rollout seguro
+- F4 — Performance e Segurança: cache, CORS, rate-limit, headers, perf-budget, WCAG A11y
+- F5 — Escala e DX: filas/jobs, document. API, pipelines, DX de dev, automações user/LLM
+- F6 — Release/Manutenção: release notes, versionamento, backup, restore, SLOs
+
+***
 
 ## 5. Requisitos Funcionais (User Stories)
-- [ ] Como `<persona>`, quero `<ação>` para `<benefício>`.
-- [ ] …
+
+- [ ] Como gestor, quero cadastrar e editar obras/projetos para controlar status, responsáveis e prazos.
+- [ ] Como engenheiro, quero criar tarefas/checklists e atribuir à equipe e projetistas.
+- [ ] Como almoxarife, quero registrar entrada/saída/estoque de materiais em cada obra.
+- [ ] Como responsável, quero consultar documentos de projetos e receber notificações de alterações.
+- [ ] Como usuário, quero acessar via web/mobile (PWA) e receber alertas via e-mail/WhatsApp.
+- [ ] Como gestor, quero consultar dashboards de progresso físico/financeiro.
+- [ ] Como colaborador, quero autenticação segura (login JWT), MFA opcional.
+- [ ] Como stakeholder, quero consultar informações via agente IA conversacional.
+
+***
 
 ## 6. Requisitos Não Funcionais
-- Confiabilidade: `<SLOs de uptime, MTTR>`
-- Segurança: `<authn/authz, OWASP, secrets>`
-- Observabilidade: `<logs, métricas, traces>`
-- Performance: `<SLIs (p95), orçamentos (bundle, latência)>`
-- Escalabilidade: `<estratégia horizontal/vertical>`
-- Compatibilidade: `<browsers, plataformas>`
-- Acessibilidade (a11y): `<critérios WCAG>`
+
+- Confiabilidade: SLA 99,5% uptime/ano, MTTR < 1h
+- Segurança: JWT Auth, RBAC mínimo, LGPD, segredos via Vault, OWASP top-10 mitigado
+- Observabilidade: logs JSON, métricas HTTP/DB/IA, tracing requests críticos
+- Performance: p95 resp API < 300ms, dashboard < 2s
+- Escalabilidade: horizontal auto-scale K8s, cache Redis, bulk API/sync job
+- Compatibilidade: PWA, desktop + mobile browsers (Edge, Chrome, Safari, Firefox)
+- Acessibilidade (a11y): mínimo WCAG 2.1 AA, navegação por teclado, contraste adequado
+
+***
 
 ## 7. Arquitetura Alvo
-- Frontend: `<React/Next.js ou outro>`
-- Backend: `<Node/Nest/Express ou Python/FastAPI/Django>`
-- API: `<REST/GraphQL>`, versionamento `<v1>`, autenticação `<JWT/OAuth2>`
-- Banco de dados: `<PostgreSQL recomendado>`, migrações `<Prisma/Knex/Alembic>`
-- Mensageria/Jobs: `<opcional: Redis/Sidekiq/BullMQ/Celery>`
-- Armazenamento de arquivos: `<S3/Cloud provider>`
-- Infra: `<Docker Compose dev; deploy: Render/Fly/VM/K8s>`
-- Diagrama de alto nível: `<descrever módulos e fluxos principais>`
 
-## 8. Modelo de Dados (rótulos e relações)
-- Entidades: `<Usuário, Projeto, Tarefa, …>`
-- Campos chave: `<nome, email, …>`
-- Relacionamentos: `<1:N, N:N>`
-- Regras de integridade e índices: `<únicos, FKs, índices>`
+- Frontend: Next.js 15 + TypeScript + Shadcn/ui + TailwindCSS
+- Backend: FastAPI (Python 3.11+), API REST (OpenAPI 3)
+- Banco: PostgreSQL 16, Alembic; Redis p/ cache/queue
+- Workflow/AI: Kestra + n8n (event-driven), LangChain/LangGraph p/ agentes
+- API: JWT; versionamento via `/api/v1/`
+- Armazenamento arquivos: S3 ou Cloud equivalente
+- Infra: Dev via Docker Compose, prod via K8s (EKS)
+- Messaging/Jobs: Celery + RabbitMQ
+- Diagrama alto nível: Projeto, tarefas, materiais, equipe e documentos conectados via API, AI/Workflows integrados por eventos e webhooks, observabilidade em todo stack
+
+***
+
+## 8. Modelo de Dados (resumido)
+
+- Usuário: { id, email, senha, nome, perfil }
+- Projeto: { id, nome, status, owner_id, ... }
+- Tarefa: { id, projeto_id, responsável_id, título, deadline, status }
+- Equipe: { projeto_id, user_id, role }
+- Material: { id, nome, projeto_id, estoque, fornecedor }
+- Documento: { id, projeto_id, tarefa_id, url, tipo }
+- Relacionamentos principais: Usuário 1:N Projeto; Projeto 1:N Tarefa/Material/Documento/Equipe
+- Índices: por owner, por status, FKs consistentes
+
+***
 
 ## 9. Design de API
-- Convenções: `<snake_case vs camelCase, envelopes>`
-- Erros: formato padronizado `{ error: { code, message, details } }`
-- Paginação/filtros/sort: `<padrões>`
-- Versionamento: `</api/v1>`
-- Contratos exemplares:
-  - `POST /api/v1/auth/login`
-  - `GET /api/v1/items?limit=&cursor=`
-  - …
+
+- Convenção: snake_case para backend, camelCase para frontend (conversão automática)
+- Erros: `{ "error": { "code": ..., "message": ..., "details": ... } }`
+- Paginação padrão `?limit=&offset=`
+- Versionamento: `/api/v1/`
+- Exemplos:
+   - POST `/api/v1/auth/login`
+   - GET `/api/v1/projects`
+   - POST `/api/v1/projects`
+   - GET `/api/v1/projects/{id}/tasks`
+   - POST `/api/v1/materials`
+- Autorização no header `Authorization: Bearer <jwt>`
+- Docs automáticas (Swagger/ReDoc)
+
+***
 
 ## 10. Frontend
-- Páginas/rotas: `<lista>`
-- Estado: `<React Query/Redux/etc.>`
-- UI Kit/Design System: `<opcional>`
-- i18n: `<linguagens>`
-- Acessibilidade: `<requisitos>`
+
+- Páginas: `/login`, `/dashboard`, `/projects`, `/projects/[id]`, `/tasks`, `/materials`, `/reports`
+- Estado: TanStack Query, Zustand (quando global), SWR mini cache
+- UI Kit: Shadcn/ui, ícones Lucide
+- i18n: pt‑BR (v1); campos preparados para easy-translate
+- A11y: contraste, alt, teclado e roles WAI-ARIA
+- SEO: title dinâmico, meta, manifest.json (PWA)
+
+***
 
 ## 11. Segurança
-- Autenticação: `<fluxo>`
-- Autorização (RBAC/ABAC): `<papéis e políticas>`
-- Proteções web: `<CSRF, XSS, rate‑limit>`
-- Gestão de segredos: `<.env local; provedor em produção>`
+
+- Autenticação: JWT, refresh token, MFA opcional (TOTP/SMS e-mail)
+- Autorização: RBAC mínimo (admin, gestor, operador)
+- Proteção web: CSRF (apenas se suportar forms POST puros), XSS, CORS restritivo, rate-limit (per IP)
+- Gestão de segredos: .env local, Vault prod, nunca versionado
+- Auditoria: logs toda ação sensível e login/logout
+- Privacy/terms: Política LGPD/privacidade
+
+***
 
 ## 12. Observabilidade e Operação
-- Logs: `<níveis, correlação>`
-- Métricas: `<técnicas e de negócio>`
-- Traces: `<quando útil>`
-- Alertas: `<limiares e destinos>`
+
+- Logs: estruturados, correlacionados por request-id
+- Métricas: HTTP (reqs/s, latência, erro), banco, jobs, AI, uso API
+- Tracing: habilitado para RPC/AI/integrações sensíveis
+- Alertas: erros críticos, alta latência, falhas em jobs, uso CPU/disco cloud
+
+***
 
 ## 13. Desenvolvimento e Ambientes
-- Dev: `make setup` → `make dev`
-- Test: `make test` (unit/integration/e2e)
-- Lint/Format: `make lint`/`make fmt`
-- Ambientes: dev / staging / prod; flags de recurso
-- Configuração por ambiente: `<12‑factor, env vars>`
+
+- Dev: `make setup` → `make dev`, `.env.local`
+- Test: `make test` (pytest, playwright)
+- Lint/Format: `make lint`, `make fmt`
+- Ambientes: dev / staging / prod
+- Variáveis por ambiente (12‑factor, dotenv)
+- Flags de recurso para rollout seguro
+
+***
 
 ## 14. CI/CD
-- CI: lint → test → build → policy‑check → artefatos
-- CD: staging automatizado; prod com aprovação
-- Estratégia de migrações DB: `<migrar antes/depois, safe‑migrate>`
+
+- CI: lint → test → build → policy‑check → criar artefato (docker/k8s)
+- CD: staging completo/automatizado, produção com aprovação humana
+- Migrações sempre antes do deploy app (safe-migrate Alembic)
+- Checks e scripts validados sempre antes do merge
+
+***
 
 ## 15. Testes
-- Pirâmide: unit > integração > e2e
-- Cobertura alvo: `<ex.: 80%>`
-- Testes de contrato de API e snapshot de UI (quando aplicável)
+
+- Pirâmide: unitários > integração > E2E
+- Cobertura alvo: 80% backend, 70% frontend
+- Teste mínimo: health/version e contrato API ofertas
+- Front: Playwright com snapshot básico UI
+- Pre-commit hooks ativos para testes rápidos
+
+***
 
 ## 16. Internacionalização e SEO
-- Idiomas: `<pt‑BR, en‑US, …>`
-- SEO: `<metatags, sitemap, robots>` (se web pública)
+
+- Idiomas: pt‑BR primário (v1)
+- SEO (web pública): titles, metatags, manifest, sitemap, robots.txt
+
+***
 
 ## 17. Riscos e Mitigações
-- `<risco>` → `<mitigação>`
+
+- Risco: Falta de onboarding UX → Mitigação: user-test early + survey
+- Risco: LLM gerar resposta errada (tool misuse) → Mitigação: tool calling validada/testada + fallback manual/humano
+- Risco: Perda de dados acidental → Backups diários automatizados
+- Risco: Deploy com segredo exposto → CI bloqueia merge se segredos versionados
+
+***
 
 ## 18. Critérios de Aceitação
-- Demonstrações: `<o que deve ser possível>`
-- Checks automáticos: CI verde; `scripts/validate.sh` OK
+
+- Login, CRUD projeto/tarefa/material/doc funcionando
+- Health-check e logs no deploy
+- API documentada (/_docs)
+- Scripts bootstrap e CI verde ao commit
+- Coverage mínimo previsto atingido
+- Staging deployável com dados fake/seed
+- Validação manual user-flow base completa
+
+***
 
 ## 19. Entregáveis por Fase
-- Fase 0: skeleton `src/`, `tests/`, `docs/`, `README`, CI verde
-- Fase 1: MVP funcional com deploy em `<plataforma>`
-- Fase 2: otimizações, SLOs cumpridos, observabilidade completa
+
+- F0: `src/`, `tests/`, `docs/`, `README`, CI verde
+- F1: MVP funcional disponível
+- F2: SLOs, logs, métricas completas, erros capturados e dashboards básicos
+- F3–F6: Infra estável, escalável, recovery, DX evoluída, documentação e versionamento
+
+***
 
 ## 20. Detalhamento das Fases (Checklists)
 
-### Fase 0 — Bootstrap
-- [ ] Confirmar stack (Seção 0) e atualizar `README.md` e `docs/how-to-run.md`
-- [ ] Scaffold mínimo em `src/` e teste de saúde
-- [ ] `Makefile`/`justfile` com `fmt`, `lint`, `test`, `dev`, `run`
-- [ ] CI ativo (validate + policy‑check; testes quando existirem)
-- [ ] `.gitignore`, `.editorconfig`, `AGENTS.md`, `.codex/policy.json` revisados
+### F0 — Bootstrap
+- [ ] Stack confirmada e README/docs OK
+- [ ] Scaffold src/ mínimo, health endpoint
+- [ ] Makefile/justfile/ci prontos
+- [ ] Pre-commit ativo
+- [ ] .gitignore, .editorconfig, AGENTS.md revisados
 
-### Fase 1 — MVP
-- [ ] Modelos/Entidades centrais e CRUD básico
-- [ ] Autenticação (ex.: sessão/JWT/OAuth2, conforme PRD)
-- [ ] UI inicial (se full‑stack) com as rotas essenciais
-- [ ] Casos de uso principais com testes de integração
+### F1 — MVP
+- [ ] Modelos/CRUD de projeto, tarefa, material, usuário, doc
+- [ ] JWT auth, RBAC e refresh
+- [ ] Interface frontend funcional/login
+- [ ] Testes integração CRUD principais
 
-### Fase 2 — Observabilidade e Qualidade
-- [ ] Logs estruturados, correlação de requisição
-- [ ] Métricas técnicas (latência p95, erro rate) e de negócio
-- [ ] Tracing (quando aplicável)
-- [ ] Testes unitários + cobertura alvo
-- [ ] Lint/format e pre‑commit configurados
+### F2 — Observabilidade/Qualidade
+- [ ] Logs estruturados, req-id correlacionado
+- [ ] Métricas HTTP/DB/AI/API
+- [ ] Tracing em integrações AI/workflows
+- [ ] Testes unit/cov ≥ 80%
+- [ ] Pre-commit lint/format/test ativo
 
-### Fase 3 — Infra e Deploy
-- [ ] Docker/Compose (ou alternativa) e build reproduzível
-- [ ] Banco de dados e migrações versionadas
-- [ ] Staging com variáveis de ambiente seguras (sem segredos no repo)
-- [ ] Processo de deploy e rollback documentados
+### F3 — Infra e Deploy
+- [ ] Docker Compose/k8s pronto e diarizado
+- [ ] Migrações seguras
+- [ ] Diff e rollback documentados
+- [ ] Variáveis ambiente seguras e policies de segredo
 
-### Fase 4 — Performance e Segurança
-- [ ] Cache/paginação e limites de consulta
-- [ ] Hardening de headers, CORS, rate‑limit
-- [ ] Acessibilidade (WCAG aplicável), perf de frontend (se web)
+### F4 — Segurança/Performance
+- [ ] CORS, rate-limit, hardening headers, WCAG AA, consultas com paginação/limite
 
-### Fase 5 — Escala e DX
-- [ ] Filas e jobs (ex.: Redis, Celery/BullMQ)
-- [ ] Observabilidade ampliada (dashboards, alertas)
-- [ ] Documentação de API (OpenAPI/GraphQL schema) e DX de dev
+### F5 — Escala e DX
+- [ ] Job/queue prontos, doc API validada, flags experimento
 
-### Fase 6 — Release e Manutenção
-- [ ] Versionamento semântico e notas de release
-- [ ] Backups/retentiva e testes de restauração
-- [ ] Revisão periódica de SLOs e dívida técnica
+### F6 — Release/Manutenção
+- [ ] Versionamento, backup/restore simulados
+- [ ] SLOs validados e dívida técnica revisada
 
----
-
-## Instruções para LLM
-1) Leia PRD.md e gere um resumo + plano com etapas curtas.
-2) Obtenha da Seção 0 a stack escolhida e confirme no plano.
-3) Obedeça AGENTS.md e `.codex/policy.json` (paths permitidos, limites de diff).
-4) Fase 0 — Bootstrap (permitido criar/editar):
-   - `src/**`, `tests/**`, `docs/**`, `README.md`, `CONTRIBUTING.md`, `Makefile`,
-     `scripts/**`, `.github/workflows/**`, `.gitignore`, `.editorconfig`, `AGENTS.md`, `PRD.md`.
-5) Não tocar: `secrets/**`, `infra/prod/**`. Nunca inserir segredos.
-6) Mantenha mudanças pequenas e focadas; atualize docs e testes junto do código.
-7) Valide localmente com `bash scripts/validate.sh`. CI deve ficar verde.
-8) Abra PR descrevendo: resumo do PRD, escopo, riscos, validação e próximos passos.
-9) Após aprovação, avance pelas Fases 1→6 conforme este PRD.

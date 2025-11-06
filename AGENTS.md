@@ -22,6 +22,9 @@ Ferramentas e conduta:
 - Não renomeie nem delete arquivos massivamente; evite mudanças cosméticas amplas.
 - Se tocar em src/**, também atualize tests/** e docs/** relevantes.
 - Se `Guia.md` existir, ignore-o (conteúdo é para humanos) e não o modifique. O humano poderá removê-lo antes da execução do Bootstrap.
+- Proteja segredos: nunca insira chaves (AWS, GCP, tokens) ou strings com `secret=`/`password=`; use placeholders e `.env.example`.
+- Ao criar novas automações, inclua validações de segurança (lint, testes, scans) e registre saídas em `logs/`.
+- Antes de subir mudanças críticas, execute `bash scripts/security-scan.sh` e `bash scripts/validate.sh`.
 
 Validação e fluxo:
 - Siga também o `Guia.md` para a ordem operacional (PRD → plano → bootstrap → validação → PR).

@@ -3,7 +3,9 @@
     "src/**", "tests/**", "docs/**",
     "README.md", "CONTRIBUTING.md", "Makefile",
     "scripts/**", ".github/workflows/**",
-    ".gitignore", ".editorconfig", "AGENTS.md", "PRD.md"
+    ".gitignore", ".editorconfig", "AGENTS.md", "PRD.md",
+    "backups/**", "logs/**", "docker/**",
+    "audit.log", "security.log"
   ],
   "deny_write": [
     "secrets/**", "infra/prod/**"
@@ -12,8 +14,15 @@
   "max_files_changed": 50,
   "max_diff_bytes": 200000,
   "forbidden_patterns": [
-    "rm -rf /", "curl http", "wget http",
-    "eval\\(", "os\\.system\\(", "subprocess\\.Popen\\("
+    "rm -rf /",
+    "(?i)aws_secret_access_key",
+    "(?i)aws_access_key_id",
+    "(?i)google_api_key",
+    "(?i)password\\s*=",
+    "(?i)secret\\s*=",
+    "eval\\(",
+    "os\\.system\\(",
+    "subprocess\\.Popen\\("
   ],
   "require_updates": [
     { "touches": "src/**", "also_update": ["tests/**", "docs/**"] }

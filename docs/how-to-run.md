@@ -1,13 +1,51 @@
-# Como rodar (esqueleto)
+# Como rodar
 
-Este projeto é um template “LLM‑safe”. O stack (linguagem/framework) será definido no PRD.md e a LLM (ou o time) deve atualizar este documento conforme a escolha.
+## Pré-requisitos
+- Python 3.11+
+- Node.js 20+
+- Make, Git, Curl
+- Docker + Docker Compose (opcional para stack completa)
 
-Ao definir a stack no PRD, inclua aqui:
-- Pré‑requisitos (versão da linguagem, gerenciador de pacotes, Docker, etc.)
-- Comandos de setup (ex.: `npm ci`, `pip install -r requirements.txt`, `docker compose up`)
-- Como rodar em desenvolvimento (reload/hot‑reload)
-- Como rodar testes, lint e formatadores
-- Como configurar variáveis de ambiente (e `.env.example`)
-- Como executar build e/ou iniciar em produção
+## Backend (FastAPI)
+```bash
+make install          # cria venv/ instala requirements.txt
+make dev              # uvicorn com reload (porta 8000)
+make run              # uvicorn sem reload
+make lint             # ruff + black --check + isort --check-only
+make fmt              # corrige formatação
+make test             # pytest
+bash scripts/validate.sh  # lint + test + healthcheck automatizado
+make security          # ruff unsafe + bandit + pip-audit + secret scan + npm audit
+make backup            # gera artefato em backups/
+```
 
-Dica: mantenha os comandos reunidos em `Makefile` ou `justfile` para padronizar DX.
+Health: `GET http://localhost:8000/health → {"status":"ok","version":"0.1.0"}`
+
+## Frontend (Next.js)
+```bash
+cd frontend
+npm install
+npm run dev           # porta 3000
+npm run lint
+npm run typecheck
+npm run build
+npm run start
+npm run test:e2e      # Playwright (requer porta 3000 livre)
+```
+
+Health: `GET http://localhost:3000/health → {"status":"ok","version":"0.1.0"}`
+
+## Docker Compose
+```bash
+cp .env.example .env
+docker compose up --build
+```
+- API disponível em `http://localhost:${API_PORT:-8000}`
+- Frontend em `http://localhost:${FRONTEND_PORT:-3000}`
+- Postgres com usuário/senha `zappro / change_me` (altere via `.env`)
+
+## Dicas
+- Logs das automações ficam em `logs/`.
+- `scripts/daily-health.sh` pode ser agendado para monitorar `/health` API + frontend.
+- `scripts/restore.sh <arquivo>` reaplica backup gerado via `make backup`.
+- Ajuste variáveis reais apenas em ambientes seguros (Vault / secrets). `.env.example` usa placeholders.

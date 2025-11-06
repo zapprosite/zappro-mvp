@@ -1,0 +1,52 @@
+{
+  "requests": [
+    {
+      "requestId": "req-1",
+      "originalRequest": "Manter rotina de segurança ZapPro após hardening inicial.",
+      "splitDetails": "Manter rotina de segurança ZapPro após hardening inicial.",
+      "tasks": [
+        {
+          "id": "task-1",
+          "title": "Rodar security scan semanal",
+          "description": "Executar bash scripts/security-scan.sh e documentar vulnerabilidades pendentes.",
+          "done": false,
+          "approved": false,
+          "completedDetails": ""
+        },
+        {
+          "id": "task-2",
+          "title": "Verificar atualizações FastAPI/Starlette",
+          "description": "Reavaliar CVEs reportados por pip-audit e planejar upgrade seguro.",
+          "done": false,
+          "approved": false,
+          "completedDetails": ""
+        },
+        {
+          "id": "task-3",
+          "title": "Revisar backups e restore",
+          "description": "Executar scripts/backup.sh e scripts/restore.sh em ambiente controlado para validar integridade.",
+          "done": false,
+          "approved": false,
+          "completedDetails": ""
+        },
+        {
+          "id": "task-4",
+          "title": "Agendar scan diário (pip-audit/bandit/npm audit)",
+          "description": "Executar scripts/security-scan.sh diariamente via cron/Kestra e revisar security.log.",
+          "done": false,
+          "approved": false,
+          "completedDetails": ""
+        },
+        {
+          "id": "task-5",
+          "title": "Revisão semanal CSP/Front",
+          "description": "Validar nonce CSP em produção e atualizar middleware/layout se necessário.",
+          "done": false,
+          "approved": false,
+          "completedDetails": ""
+        }
+      ],
+      "completed": false
+    }
+  ]
+}
