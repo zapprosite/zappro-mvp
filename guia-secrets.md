@@ -24,7 +24,7 @@ Variáveis de ambiente (.env) podem conter credenciais de bancos, tokens de APIs
 - Politique revisões periódicas, rotação automática e alerte o time de SRE a cada novo segredo.
 
 ## Verificações automáticas
-- Execute `bash scripts/secret-scan.sh` antes de cada commit/push; o script procura padrões como `password=` ou chaves AWS.
+- Execute `bash scripts/secret-scan.sh` antes de cada commit/push; o script procura padrões como `senha=` (exemplo) ou chaves AWS.
 - Configure pre-commit hook para rodar `scripts/secret-scan.sh` automaticamente (adapte `scripts/pre-commit.sh` se desejar).
 - No CI, acrescente etapa que faila o build quando segredos forem detectados.
 
@@ -39,7 +39,7 @@ Variáveis de ambiente (.env) podem conter credenciais de bancos, tokens de APIs
 - Para jobs/CI, injete segredos via parâmetros (`docker run --env-file` ou `--env VAR=value`).
 
 ## Checklist mínimo (exemplos)
-- `DATABASE_URL=postgresql+psycopg://user:password@host:5432/db`
+- `DATABASE_URL=postgresql+psycopg://user:<pwd>@host:5432/db`
 - `SECRET_KEY=super-long-random-string`
 - `API_TOKEN=change_me`
 - `NEXT_PUBLIC_API_BASE_URL=http://localhost:8000`
