@@ -22,7 +22,9 @@ def _register_user(client: TestClient) -> tuple[str, str]:
 
 
 def _login(client: TestClient, email: str, password: str) -> dict:
-    response = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+    response = client.post(
+        "/api/v1/auth/login", json={"email": email, "password": password}
+    )
     assert response.status_code == 200
     return response.json()
 

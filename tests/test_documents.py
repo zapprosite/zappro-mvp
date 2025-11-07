@@ -16,7 +16,9 @@ def _register_user(client: TestClient, role: str = "gestor") -> dict[str, str]:
     }
     register = client.post("/api/v1/auth/register", json=payload)
     assert register.status_code == 201
-    login = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+    login = client.post(
+        "/api/v1/auth/login", json={"email": email, "password": password}
+    )
     token = login.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 

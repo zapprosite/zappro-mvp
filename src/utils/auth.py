@@ -41,7 +41,9 @@ def _b64url_decode(data: str) -> bytes:
     return base64.urlsafe_b64decode(data + pad)
 
 
-def _create_token(data: Dict[str, Any], expires_delta: timedelta, token_type: str) -> str:
+def _create_token(
+    data: Dict[str, Any], expires_delta: timedelta, token_type: str
+) -> str:
     to_encode = data.copy()
     exp = datetime.now(timezone.utc) + expires_delta
     to_encode.update(
@@ -88,7 +90,9 @@ def _decode_token(token: str) -> Dict[str, Any]:
 
 def create_access_token(data: Dict[str, Any]) -> str:
     return _create_token(
-        data, expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES), token_type="access"
+        data,
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+        token_type="access",
     )
 
 

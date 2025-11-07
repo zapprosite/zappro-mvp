@@ -36,9 +36,7 @@ def _validate_task_project(
     if task_id is None:
         return True
     return (
-        db.query(Task)
-        .filter(Task.id == task_id, Task.project_id == project_id)
-        .first()
+        db.query(Task).filter(Task.id == task_id, Task.project_id == project_id).first()
         is not None
     )
 
@@ -47,7 +45,9 @@ def create_document(
     db: Session, document: DocumentCreate, owner_id: int, is_admin: bool
 ) -> Optional[Document]:
     project = _project_accessible(db, document.project_id, owner_id, is_admin)
-    if not project or not _validate_task_project(db, document.task_id, document.project_id):
+    if not project or not _validate_task_project(
+        db, document.task_id, document.project_id
+    ):
         return None
 
     db_document = Document(**document.model_dump(mode="json"))

@@ -5,11 +5,18 @@ from uuid import uuid4
 import pytest
 from fastapi.testclient import TestClient
 
-from src.main import app
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+
+from src.main import app  # noqa: E402
+
+
+@pytest.fixture(autouse=True)
+def reset_rate_limiter() -> None:
+    limiter = getattr(app.state, "rate_limiter", None)
+    if limiter is not None:
+        limiter.clear()
 
 
 def _auth_headers(client: TestClient, role: str) -> dict[str, str]:
@@ -22,7 +29,9 @@ def _auth_headers(client: TestClient, role: str) -> dict[str, str]:
     }
     register = client.post("/api/v1/auth/register", json=payload)
     assert register.status_code == 201
-    login = client.post("/api/v1/auth/login", json={"email": email, "password": "secret123"})
+    login = client.post(
+        "/api/v1/auth/login", json={"email": email, "password": "secret123"}
+    )
     token = login.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 

@@ -84,6 +84,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         ttl_seconds=settings.rate_limit.ttl_seconds,
         max_entries=settings.rate_limit.max_entries,
     )
+    app.state.rate_limiter = limiter
     request_id_tracker = RequestIdTracker(
         ttl_seconds=settings.request_id_ttl_seconds,
         max_entries=settings.request_id_max_entries,

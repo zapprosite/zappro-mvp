@@ -81,6 +81,11 @@ class FixedWindowRateLimiter:
         """Clear stored hits for the identifier."""
         self._buckets.pop(identifier, None)
 
+    def clear(self) -> None:
+        """Remove all tracked identifiers."""
+        self._buckets.clear()
+        self._order.clear()
+
     def _evict(self, now: float) -> None:
         """Remove stale or excess entries."""
         while self._order:

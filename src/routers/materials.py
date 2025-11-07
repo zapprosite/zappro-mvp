@@ -9,10 +9,10 @@ from sqlalchemy.orm import Session
 
 from src.crud import material as material_crud
 from src.database import get_db
+from src.dependencies import require_role
 from src.models.material import Material as MaterialModel
 from src.models.project import Project
 from src.models.user import User, UserRole
-from src.dependencies import require_role
 from src.schemas.material import Material as MaterialSchema
 from src.schemas.material import MaterialCreate, MaterialUpdate
 from src.utils.auth import get_current_user
@@ -157,7 +157,9 @@ def update_material_endpoint(
         PUT /api/v1/materials/10 {"stock": 40}
     """
 
-    _ = _resolve_material_or_error(db=db, material_id=material_id, current_user=current_user)
+    _ = _resolve_material_or_error(
+        db=db, material_id=material_id, current_user=current_user
+    )
     updated = material_crud.update_material(
         db,
         material_id=material_id,
@@ -186,7 +188,9 @@ def delete_material_endpoint(
         DELETE /api/v1/materials/10
     """
 
-    _ = _resolve_material_or_error(db=db, material_id=material_id, current_user=current_user)
+    _ = _resolve_material_or_error(
+        db=db, material_id=material_id, current_user=current_user
+    )
     success = material_crud.delete_material(
         db,
         material_id=material_id,

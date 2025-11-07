@@ -93,7 +93,9 @@ def test_documents_role_enforcement(client_gestor, client_admin, client_operador
     assert operador_doc.status_code == 403
 
 
-def test_project_update_delete_permissions(client_gestor, client_admin, client_operador):
+def test_project_update_delete_permissions(
+    client_gestor, client_admin, client_operador
+):
     gestor_client, gestor_headers = client_gestor
     admin_client, admin_headers = client_admin
     operador_client, operador_headers = client_operador

@@ -16,7 +16,9 @@ def _register_user(client: TestClient, role: str = "gestor") -> dict[str, str]:
     }
     register = client.post("/api/v1/auth/register", json=payload)
     assert register.status_code == 201
-    login = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+    login = client.post(
+        "/api/v1/auth/login", json={"email": email, "password": password}
+    )
     token = login.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
 
@@ -25,7 +27,11 @@ def _create_project(client: TestClient, headers: dict[str, str]) -> int:
     response = client.post(
         "/api/v1/projects",
         headers=headers,
-        json={"name": "Residencial Solar", "description": "Residencial", "status": "active"},
+        json={
+            "name": "Residencial Solar",
+            "description": "Residencial",
+            "status": "active",
+        },
     )
     assert response.status_code == 201
     return response.json()["id"]
@@ -40,7 +46,12 @@ def _create_material(
     response = client.post(
         "/api/v1/materials",
         headers=headers,
-        json={"name": name, "project_id": project_id, "stock": 10, "supplier": "Fornecedor"},
+        json={
+            "name": name,
+            "project_id": project_id,
+            "stock": 10,
+            "supplier": "Fornecedor",
+        },
     )
     assert response.status_code == 201
     return response.json()
@@ -141,7 +152,9 @@ def test_delete_material_requires_owner_or_admin():
     owner_headers = _register_user(client, role="gestor")
     project_id = _create_project(client, owner_headers)
     material_owner = _create_material(client, owner_headers, project_id, name="Brita 1")
-    material_admin = _create_material(client, owner_headers, project_id, name="Tijolo 8 furos")
+    material_admin = _create_material(
+        client, owner_headers, project_id, name="Tijolo 8 furos"
+    )
 
     outsider_headers = _register_user(client, role="operador")
     outsider_delete = client.delete(

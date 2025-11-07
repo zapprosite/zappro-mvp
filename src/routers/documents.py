@@ -9,11 +9,11 @@ from sqlalchemy.orm import Session
 
 from src.crud import document as document_crud
 from src.database import get_db
+from src.dependencies import require_role
 from src.models.document import Document as DocumentModel
 from src.models.project import Project
 from src.models.task import Task
 from src.models.user import User, UserRole
-from src.dependencies import require_role
 from src.schemas.document import Document as DocumentSchema
 from src.schemas.document import DocumentCreate, DocumentUpdate
 from src.utils.auth import get_current_user
@@ -43,12 +43,7 @@ def _ensure_task_access(
     task_id: int,
     current_user: User,
 ) -> Task:
-    task = (
-        db.query(Task)
-        .join(Project)
-        .filter(Task.id == task_id)
-        .first()
-    )
+    task = db.query(Task).join(Project).filter(Task.id == task_id).first()
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
     if not _is_admin(current_user) and task.project.owner_id != current_user.id:
@@ -203,7 +198,9 @@ def update_document_endpoint(
         PUT /api/v1/documents/12 {"url": "https://example.com/new.pdf"}
     """
 
-    _ = _resolve_document_or_error(db=db, document_id=document_id, current_user=current_user)
+    _ = _resolve_document_or_error(
+        db=db, document_id=document_id, current_user=current_user
+    )
     updated = document_crud.update_document(
         db,
         document_id=document_id,
@@ -232,7 +229,9 @@ def delete_document_endpoint(
         DELETE /api/v1/documents/12
     """
 
-    _ = _resolve_document_or_error(db=db, document_id=document_id, current_user=current_user)
+    _ = _resolve_document_or_error(
+        db=db, document_id=document_id, current_user=current_user
+    )
     success = document_crud.delete_document(
         db,
         document_id=document_id,
