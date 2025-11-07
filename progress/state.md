@@ -7,10 +7,10 @@ MVP full-stack funcional, testado, sem loops ou alucinações, governado por Tut
 - Commit de docs canônicos e bootstrap de repos.
 - Testes básicos de smoke e CI/CD validados, aguardando primeira PR com entrega funcional.
 - Sem incidentes críticos. Loop guard ativo.
-- Push "feat: estrutura tutor anti-loop, governança, e scripts refatorados" preparado e alinhado com o Tutor.
+- Push "feat: estrutura tutor anti-loop, governança, e scripts refatorados" aplicado no origin/main e registrado com o Tutor.
 
 ## Progresso:
-- [x] CODEx push registrado (feat: estrutura tutor anti-loop, governança, e scripts refatorados).
+- [x] CODEx push registrado e sincronizado no origin/main (feat: estrutura tutor anti-loop, governança, e scripts refatorados).
 - [ ] Estrutura de containers docker definida e testada.
 - [ ] Arquivos AGENTS.md, WORKFLOW.md, DECISION.md, LOG.md criados.
 - [ ] Scripts (validate, smoke, loop_guard) presentes e testados.
