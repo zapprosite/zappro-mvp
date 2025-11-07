@@ -14,6 +14,7 @@ from .config import Settings, get_settings
 from .crud import project as project_crud
 from .crud import task as task_crud
 from .database import get_db, init_db
+from .routers import materials
 from .schemas.project import Project as ProjectSchema
 from .schemas.project import ProjectCreate, ProjectUpdate
 from .schemas.task import Task as TaskSchema
@@ -63,6 +64,8 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         version=__version__,
         middleware=_build_middlewares(settings),
     )
+
+    app.include_router(materials.router, prefix="/api/v1")
 
     if settings.rate_limit.backend != "memory":
         LOGGER.warning(
