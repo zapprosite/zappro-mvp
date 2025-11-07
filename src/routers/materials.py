@@ -12,6 +12,7 @@ from src.database import get_db
 from src.models.material import Material as MaterialModel
 from src.models.project import Project
 from src.models.user import User, UserRole
+from src.dependencies import require_role
 from src.schemas.material import Material as MaterialSchema
 from src.schemas.material import MaterialCreate, MaterialUpdate
 from src.utils.auth import get_current_user
@@ -65,7 +66,7 @@ def _resolve_material_or_error(
 )
 def create_material_endpoint(
     material: MaterialCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.admin, UserRole.gestor])),
     db: Session = Depends(get_db),
 ) -> MaterialSchema:
     """Create a material for a project.
@@ -147,7 +148,7 @@ def get_material_endpoint(
 def update_material_endpoint(
     material_id: int,
     material_update: MaterialUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.admin, UserRole.gestor])),
     db: Session = Depends(get_db),
 ) -> MaterialSchema:
     """Update a material's stock or supplier information.
@@ -176,7 +177,7 @@ def update_material_endpoint(
 )
 def delete_material_endpoint(
     material_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.admin, UserRole.gestor])),
     db: Session = Depends(get_db),
 ) -> Response:
     """Delete a material.

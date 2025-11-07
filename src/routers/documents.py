@@ -13,6 +13,7 @@ from src.models.document import Document as DocumentModel
 from src.models.project import Project
 from src.models.task import Task
 from src.models.user import User, UserRole
+from src.dependencies import require_role
 from src.schemas.document import Document as DocumentSchema
 from src.schemas.document import DocumentCreate, DocumentUpdate
 from src.utils.auth import get_current_user
@@ -84,7 +85,7 @@ def _resolve_document_or_error(
 )
 def create_document_endpoint(
     document: DocumentCreate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.admin, UserRole.gestor])),
     db: Session = Depends(get_db),
 ) -> DocumentSchema:
     """Create a document associated with a project or task.
@@ -193,7 +194,7 @@ def get_document_endpoint(
 def update_document_endpoint(
     document_id: int,
     document_update: DocumentUpdate,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.admin, UserRole.gestor])),
     db: Session = Depends(get_db),
 ) -> DocumentSchema:
     """Update document metadata such as URL or description.
@@ -222,7 +223,7 @@ def update_document_endpoint(
 )
 def delete_document_endpoint(
     document_id: int,
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(require_role([UserRole.admin, UserRole.gestor])),
     db: Session = Depends(get_db),
 ) -> Response:
     """Delete a document.

@@ -14,6 +14,7 @@ from .config import Settings, get_settings
 from .crud import project as project_crud
 from .crud import task as task_crud
 from .database import get_db, init_db
+from .models.user import UserRole
 from .routers import documents, materials
 from .schemas.project import Project as ProjectSchema
 from .schemas.project import ProjectCreate, ProjectUpdate
@@ -272,7 +273,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         db: Session = Depends(get_db),
     ) -> ProjectSchema:
         db_project = project_crud.get_project(
-            db, project_id=project_id, owner_id=current_user.id
+            db,
+            project_id=project_id,
+            owner_id=current_user.id,
+            is_admin=current_user.role == UserRole.admin,
         )
         if not db_project:
             raise HTTPException(status_code=404, detail="Project not found")
@@ -289,13 +293,20 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         current_user=Depends(get_current_user),
         db: Session = Depends(get_db),
     ) -> ProjectSchema:
+        is_admin = current_user.role == UserRole.admin
         db_project = project_crud.update_project(
             db,
             project_id=project_id,
             project_update=project_update,
             owner_id=current_user.id,
+            is_admin=is_admin,
         )
         if not db_project:
+            project_exists = project_crud.get_project(
+                db, project_id=project_id, owner_id=None, is_admin=True
+            )
+            if project_exists:
+                raise HTTPException(status_code=403, detail="Insufficient permissions")
             raise HTTPException(status_code=404, detail="Project not found")
         return db_project
 
@@ -309,10 +320,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         current_user=Depends(get_current_user),
         db: Session = Depends(get_db),
     ) -> None:
+        is_admin = current_user.role == UserRole.admin
         success = project_crud.delete_project(
-            db, project_id=project_id, owner_id=current_user.id
+            db,
+            project_id=project_id,
+            owner_id=current_user.id,
+            is_admin=is_admin,
         )
         if not success:
+            project_exists = project_crud.get_project(
+                db, project_id=project_id, owner_id=None, is_admin=True
+            )
+            if project_exists:
+                raise HTTPException(status_code=403, detail="Insufficient permissions")
             raise HTTPException(status_code=404, detail="Project not found")
 
     @app.get(

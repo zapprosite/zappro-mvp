@@ -21,12 +21,13 @@ def get_projects(
     )
 
 
-def get_project(db: Session, project_id: int, owner_id: int) -> Optional[Project]:
-    return (
-        db.query(Project)
-        .filter(Project.id == project_id, Project.owner_id == owner_id)
-        .first()
-    )
+def get_project(
+    db: Session, project_id: int, owner_id: Optional[int], is_admin: bool = False
+) -> Optional[Project]:
+    query = db.query(Project).filter(Project.id == project_id)
+    if not is_admin:
+        query = query.filter(Project.owner_id == owner_id)
+    return query.first()
 
 
 def create_project(db: Session, project: ProjectCreate, owner_id: int) -> Project:
@@ -38,9 +39,13 @@ def create_project(db: Session, project: ProjectCreate, owner_id: int) -> Projec
 
 
 def update_project(
-    db: Session, project_id: int, project_update: ProjectUpdate, owner_id: int
+    db: Session,
+    project_id: int,
+    project_update: ProjectUpdate,
+    owner_id: int,
+    is_admin: bool = False,
 ) -> Optional[Project]:
-    db_project = get_project(db, project_id, owner_id)
+    db_project = get_project(db, project_id, owner_id, is_admin)
     if not db_project:
         return None
 
@@ -52,8 +57,10 @@ def update_project(
     return db_project
 
 
-def delete_project(db: Session, project_id: int, owner_id: int) -> bool:
-    db_project = get_project(db, project_id, owner_id)
+def delete_project(
+    db: Session, project_id: int, owner_id: int, is_admin: bool = False
+) -> bool:
+    db_project = get_project(db, project_id, owner_id, is_admin)
     if not db_project:
         return False
 
