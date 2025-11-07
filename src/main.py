@@ -3,9 +3,10 @@
 import logging
 from typing import Any, Dict, List
 
-from fastapi import FastAPI, HTTPException, Request, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
 from starlette.middleware import Middleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
@@ -15,6 +16,7 @@ from .crud import project as project_crud
 from .crud import task as task_crud
 from .database import get_db, init_db
 from .models.user import UserRole
+from .routers import auth as auth_router
 from .routers import documents, materials
 from .schemas.project import Project as ProjectSchema
 from .schemas.project import ProjectCreate, ProjectUpdate
@@ -68,6 +70,7 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     app.include_router(materials.router, prefix="/api/v1")
     app.include_router(documents.router, prefix="/api/v1")
+    app.include_router(auth_router.router)
 
     if settings.rate_limit.backend != "memory":
         LOGGER.warning(
@@ -183,54 +186,6 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             "rate_limit": str(settings.rate_limit.max_requests),
             "rate_limit_window": str(settings.rate_limit.window_seconds),
         }
-
-    # Routers: inline auth routes (fallback to avoid import issues)
-    from fastapi import Depends
-    from sqlalchemy.orm import Session
-
-    from .models.user import User as UserModel
-    from .schemas.auth import Token
-    from .schemas.auth import User as UserSchema
-    from .schemas.auth import UserCreate, UserLogin
-    from .utils.auth import create_access_token, get_password_hash, verify_password
-
-    @app.post(
-        "/api/v1/auth/register",
-        tags=["auth"],
-        response_model=UserSchema,
-        status_code=status.HTTP_201_CREATED,
-    )
-    def register(user: UserCreate, db: Session = Depends(get_db)) -> UserSchema:
-        existing = db.query(UserModel).filter(UserModel.email == user.email).first()
-        if existing:
-            raise HTTPException(status_code=400, detail="Email already registered")
-        db_user = UserModel(
-            email=user.email,
-            name=user.name,
-            role=user.role,
-            hashed_password=get_password_hash(user.password),
-        )
-        db.add(db_user)
-        db.commit()
-        db.refresh(db_user)
-        return db_user  # type: ignore[return-value]
-
-    @app.post("/api/v1/auth/login", tags=["auth"], response_model=Token)
-    def login(user_credentials: UserLogin, db: Session = Depends(get_db)) -> Token:
-        db_user = (
-            db.query(UserModel)
-            .filter(UserModel.email == user_credentials.email)
-            .first()
-        )
-        if not db_user or not verify_password(
-            user_credentials.password, db_user.hashed_password
-        ):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Incorrect email or password",
-            )
-        token = create_access_token({"sub": db_user.email})
-        return {"access_token": token, "token_type": "bearer", "user": db_user}  # type: ignore[dict-item]
 
     @app.get("/ping", tags=["health"])
     def ping() -> dict[str, str]:

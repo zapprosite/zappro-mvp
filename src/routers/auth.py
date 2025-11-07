@@ -1,14 +1,29 @@
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.models.user import User as UserModel
-from src.schemas.auth import Token, User, UserCreate, UserLogin
-from src.utils.auth import create_access_token, get_password_hash, verify_password
+from src.schemas.auth import (
+    RefreshRequest,
+    RefreshResponse,
+    Token,
+    User,
+    UserCreate,
+    UserLogin,
+)
+from src.utils.auth import (
+    create_access_token,
+    generate_refresh_token,
+    get_password_hash,
+    verify_password,
+    verify_refresh_token,
+)
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
+optional_bearer = HTTPBearer(auto_error=False)
 
 
 @router.post("/register", response_model=User, status_code=status.HTTP_201_CREATED)
@@ -41,8 +56,35 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)) -> Token:
         )
 
     access_token = create_access_token(data={"sub": user.email})
+    refresh_token = generate_refresh_token(data={"sub": user.email})
     return {
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
         "user": user,  # type: ignore[dict-item]
     }
+
+
+@router.post("/refresh", response_model=RefreshResponse)
+def refresh_token_endpoint(
+    payload: RefreshRequest | None = None,
+    credentials: HTTPAuthorizationCredentials | None = Depends(optional_bearer),
+    db: Session = Depends(get_db),
+) -> RefreshResponse:
+    token = (payload.refresh_token if payload else None) or (
+        credentials.credentials if credentials else None
+    )
+    if not token:
+        raise HTTPException(status_code=400, detail="Refresh token required")
+
+    decoded = verify_refresh_token(token)
+    email = decoded.get("sub")
+    if not email:
+        raise HTTPException(status_code=401, detail="Invalid refresh token subject")
+
+    user = db.query(UserModel).filter(UserModel.email == email).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="User not found")
+
+    access_token = create_access_token({"sub": user.email})
+    return RefreshResponse(access_token=access_token)

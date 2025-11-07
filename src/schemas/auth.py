@@ -33,9 +33,19 @@ class User(UserBase):
 
 class Token(BaseModel):
     access_token: str
+    refresh_token: str
     token_type: str
     user: User
 
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: Optional[str] = None
+
+
+class RefreshResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
