@@ -80,6 +80,24 @@ O script liga a API, chama `/health` e encerra o servidor. Log detalhado fica em
   ```
 - Conhecido: `pip-audit` reporta CVEs no `starlette 0.38.6` (dependência indireta do FastAPI 0.115). A correção exige aguardar bump do FastAPI; monitore e atualize assim que possível.
 
+## CI/CD Automatizado
+- `ci.yml` roda em matriz Python 3.11/3.12 + Node 20/22, executa lint/format, testes com cobertura, Playwright E2E e `make security`. Artifacts (`coverage.xml`, relatórios JUnit e Playwright) ficam anexados na execução para auditoria.
+- `cd.yml` constrói e publica imagens no GHCR (`docker/api.Dockerfile` e `docker/frontend.Dockerfile`) e chama `scripts/deploy.sh` para materializar o manifesto do deploy. Pull Requests recebem prévia em `environment` *staging* (comentário automático com tags das imagens) e `main` dispara o deploy do *environment* `production`.
+- Aprovações ou rejeições de PR disparam alertas: Slack via `SLACK_WEBHOOK_URL` (Incoming Webhook) e email via `CI_SMTP_*` (server, port, username, password, from, recipients). Configure esses segredos somente pelo GitHub Actions Secrets.
+- Antes de abrir PR execute localmente `bash scripts/security-scan.sh` e `bash scripts/validate.sh` para reproduzir os estágios críticos da pipeline; o log consolidado fica em `logs/`.
+
+## Automação com LLMs e Proteção de Segredos
+- O contrato para qualquer agente continua sendo `PRD.md` + `AGENTS.md`. A nova `docs/AGENTS.md` resume fluxo seguro (planeje → bootstrap → valide → gere PR) e cita limitações como ausência de rede e bloqueio de credenciais.
+- Use `.env.example` como única fonte versionada de variáveis locais (`cp .env.example .env`). Ajuste valores reais apenas fora do Git e utilize cofres (Vault, GitHub Environments, Doppler). Comentários no arquivo listam os segredos que **devem** viver em Secrets do GitHub (`SLACK_WEBHOOK_URL`, `CI_SMTP_*`, tokens de deploy).
+- Antes de compartilhar resultados de um agente, rode `bash scripts/secret-scan.sh` (incluso em `scripts/security-scan.sh`). O pipeline e o script falham se detectarem padrões de chave/segredo.
+- Nunca cole credenciais nos prompts; troque por placeholders (`<token>`). Para liberar novos agentes ou fluxos, documente a heurística em `docs/AGENTS.md` e referencie no PR.
+
+## GitHub Projects + Tracking Automatizado
+1. Crie um quadro GitHub Projects com colunas `Backlog`, `Em andamento`, `Revisão`, `Pronto para deploy`.
+2. Configure automações nativas: mover para `Revisão` quando houver PR vinculado e para `Pronto para deploy` quando o GitHub Check `CI / policy` e o `CD / deploy production` estiverem verdes.
+3. Agentes e humanos adicionam o campo `Project` diretamente no PR ou Issue. Os comentários enviados pelo `deploy-preview` ajudam o time a validar staging antes da promoção.
+4. Para integrações com ferramentas externas (Linear, ClickUp), consuma a API de Projects após a conclusão do workflow (`workflow_run`) e sincronize status baseado nos artifacts/ambientes registrados.
+
 ## Próximos Passos (Fase 1)
 1. Definir modelos de domínio e migrations iniciais.
 2. Implementar autenticação/JWT e módulos de obras, equipes e materiais.
