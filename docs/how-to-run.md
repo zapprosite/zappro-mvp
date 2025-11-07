@@ -76,3 +76,26 @@ docker compose up --build
 - `scripts/daily-health.sh` pode ser agendado para monitorar `/health` API + frontend.
 - `scripts/restore.sh <arquivo>` reaplica backup gerado via `make backup`.
 - Ajuste variáveis reais apenas em ambientes seguros (Vault / secrets). `.env.example` usa placeholders.
+
+## CI/CD Integration
+- Execute `bash scripts/validate.sh` localmente para reproduzir o job `validate`.
+- `make lint`, `make test` e `npm run test:e2e` simulam as matrizes do `ci.yml`.
+- Use `bash scripts/security-scan.sh` + `bash scripts/dependency-watch.sh` para validar os estágios de segurança antes do push.
+- Para testar o fluxo de deploy, gere imagens localmente (`docker build -f docker/api.Dockerfile .`) e rode `bash scripts/deploy.sh staging image@sha dummy@sha feature-branch` — o script grava o manifesto em `logs/`.
+
+## MCP Tools Available
+- `filesystem` — leitura e escrita direta em arquivos locais.
+- `git` — commits, status, push/pull.
+- `github` — leitura de arquivos remotos, criação de PRs e verificação de workflows.
+- `task_manager` — acompanhamento de requisições e tarefas (req-1..req-3).
+- `shell`/`desktop_commander` — execução de comandos (`make`, `pytest`, `npm`).
+- `playwright` — testes E2E automatizados.
+- `brave_search`/`exa_search`/`context7` — pesquisa na web e documentação técnica.
+
+## Troubleshooting
+| Sintoma | Possível causa | Correção sugerida |
+| --- | --- | --- |
+| `make lint` falha em `isort` | imports fora de ordem após edição manual | Rode `venv/bin/isort --profile black src tests` e confirme com `make lint`. |
+| `make test` acusa `sqlite3.OperationalError` | banco SQLite antigo/migrations incompletas | Remova `zappro.db`, rode `make install` e `venv/bin/alembic upgrade head`. |
+| `npm run test:e2e` quebra no `/health` | API indisponível ou CORS inválido | Certifique-se de rodar `make dev` (backend) e `npm run dev` (frontend) com `NEXT_PUBLIC_API_BASE_URL` apontando para `http://localhost:8000`. |
+| `scripts/validate.sh` trava no healthcheck | Porta 8000 ocupada | Libere a porta (`lsof -i :8000`), ajuste `API_PORT` no `.env` e reexecute. |

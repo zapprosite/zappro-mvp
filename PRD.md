@@ -300,3 +300,21 @@ Este PRD é a única fonte de verdade do produto e guia times e LLMs para evolu�
 - [ ] Versionamento, backup/restore simulados
 - [ ] SLOs validados e dívida técnica revisada
 
+## Appendix D: DevOps Standards Compliance
+
+### CI/CD Architecture
+- Pipeline: GitHub Actions com matrizes Python 3.11/3.12 e Node 20/22.
+- Cobertura: artifacts de cobertura publicados e integração com Codecov (limiar 80%).
+- Deploy: prévia automática em PR + promoção para produção após merge na `main`.
+- Notificações: Slack (`SLACK_WEBHOOK_URL`) e email via SMTP (`CI_SMTP_*`).
+
+### Agent Integration
+- `docs/AGENTS.md` define limites de operação de LLMs/agents.
+- Fluxo Codex CLI + MCP descrito em `docs/metodo-contrato-codex-cli-com-mcp.md`.
+- GitHub Projects automatiza o quadro Kanban e amarra issues/PRs ao roadmap.
+
+### Security Baselines
+- Zero segredos versionados; usar `.env.example` apenas como referência.
+- `scripts/secret-scan.sh` em pre-push e nos pipelines.
+- Monitoramento diário de dependências (`scripts/dependency-watch.sh`) e bloqueios de policy em PR.
+- Checks obrigatórios: lint, testes, segurança e Playwright antes do merge.

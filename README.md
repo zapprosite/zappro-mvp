@@ -1,5 +1,10 @@
 # ZapPro — Bootstrap da Plataforma
 
+[![CI](https://github.com/zapprosite/zappro-mvp/actions/workflows/ci.yml/badge.svg)](https://github.com/zapprosite/zappro-mvp/actions/workflows/ci.yml)
+[![CD](https://github.com/zapprosite/zappro-mvp/actions/workflows/cd.yml/badge.svg)](https://github.com/zapprosite/zappro-mvp/actions/workflows/cd.yml)
+[![Python](https://img.shields.io/badge/python-3.11%20%7C%203.12-3776AB?logo=python&logoColor=white)](#stack)
+[![Node](https://img.shields.io/badge/node-20%20%7C%2022-339933?logo=node.js&logoColor=white)](#stack)
+
 > **Antes de iniciar:** revise o guia [`guia-secrets.md`](guia-secrets.md) para configurar variáveis de ambiente e segredos com segurança.
 
 Baseline da ZapPro para a Fase 0 (Bootstrap) com backend FastAPI 3.11 e frontend Next.js 15. O objetivo é disponibilizar endpoints de saúde, pipelines de lint/test, documentação mínima e infraestrutura local via Docker Compose.
@@ -97,6 +102,23 @@ O script liga a API, chama `/health` e encerra o servidor. Log detalhado fica em
 2. Configure automações nativas: mover para `Revisão` quando houver PR vinculado e para `Pronto para deploy` quando o GitHub Check `CI / policy` e o `CD / deploy production` estiverem verdes.
 3. Agentes e humanos adicionam o campo `Project` diretamente no PR ou Issue. Os comentários enviados pelo `deploy-preview` ajudam o time a validar staging antes da promoção.
 4. Para integrações com ferramentas externas (Linear, ClickUp), consuma a API de Projects após a conclusão do workflow (`workflow_run`) e sincronize status baseado nos artifacts/ambientes registrados.
+
+## DevOps Standards
+
+### Automation
+- **CI/CD**: Matriz Python 3.11/3.12 + Node 20/22 com lint, testes, cobertura e artifacts obrigatórios.
+- **Deploy**: Prévia automática em PR (environment `staging`) e promoção para produção ao merge na `main`.
+- **Security**: `scripts/secret-scan.sh` antes de push, `scripts/dependency-watch.sh` diário e `scripts/policy-check.sh` bloqueando PRs.
+
+### Agent/LLM Integration
+- Consulte [docs/AGENTS.md](docs/AGENTS.md) para regras de automação e rastreabilidade.
+- O fluxo Codex CLI + MCP está documentado em [docs/metodo-contrato-codex-cli-com-mcp.md](docs/metodo-contrato-codex-cli-com-mcp.md).
+
+### Quality Gates
+- Lint: Ruff + Black + Isort → tolerância zero para avisos.
+- Testes: `pytest` com cobertura mínima de **80%** (Codecov conectado aos artifacts).
+- Segurança: `pip-audit`/`npm audit` sem CVEs High/Critical antes do merge.
+- E2E: Playwright `npm run test:e2e` precisa passar em cada PR.
 
 ## Próximos Passos (Fase 1)
 1. Definir modelos de domínio e migrations iniciais.
