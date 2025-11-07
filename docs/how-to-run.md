@@ -71,6 +71,15 @@ docker compose up --build
 - Frontend em `http://localhost:${FRONTEND_PORT:-3000}`
 - Postgres com usuário/senha `zappro / change_me` (altere via `.env`)
 
+### Database Setup
+```bash
+cp .env.example .env                          # garante POSTGRES_* = zappro
+docker compose up -d postgres                 # sobe banco com healthcheck
+./venv/bin/alembic upgrade head               # aplica migrations
+./venv/bin/python -m pytest tests/ -v         # smoke de validação
+bash scripts/bootstrap.sh                     # (opcional) executa tudo e loga em logs/bootstrap.log
+```
+
 ## Dicas
 - Logs das automações ficam em `logs/`.
 - `scripts/daily-health.sh` pode ser agendado para monitorar `/health` API + frontend.

@@ -29,15 +29,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-zappro}
+      POSTGRES_USER: ${POSTGRES_USER:-zappro}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zappro}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-zappro}", "-d", "${POSTGRES_DB:-zappro}"]
       interval: 10s
       timeout: 5s
       retries: 5

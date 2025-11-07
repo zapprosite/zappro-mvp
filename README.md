@@ -60,6 +60,13 @@ docker compose up --build
 - Frontend: `http://localhost:3000` (Next dev server)
 - Postgres: `postgres://zappro:change_me@localhost:5432/zappro`
 
+## Database Setup
+1. `cp .env.example .env` e confirme `POSTGRES_DB`, `POSTGRES_USER` e `POSTGRES_PASSWORD` como `zappro`.
+2. `docker compose up -d postgres` para iniciar o banco com health check (`pg_isready -U zappro -d zappro`).
+3. `./venv/bin/alembic upgrade head` para aplicar migrations (materiais + documentos).
+4. `./venv/bin/python -m pytest tests/ -v` para validar CRUDs e RBAC.
+5. Opcional: `bash scripts/bootstrap.sh` executa todas as etapas acima e registra a saída em `logs/bootstrap.log`.
+
 ## Health Endpoints
 - Backend: `GET http://localhost:8000/health → {"status":"ok","version":"0.1.0"}`
 - Frontend: `GET http://localhost:3000/health → {"status":"ok","version":"0.1.0"}`
