@@ -1,0 +1,28 @@
+version: v1
+project:
+  name: "zappro-mvp"
+  repo: "https://github.com/zapprosite/zappro-mvp"
+objective: "MVP full-stack funcional com CI/CD e containers orquestrados, com anti-loop e anti-alucinação para Codex CLI"
+date_ref: "2025-11-07"
+motto: "Quem não tem um plano bem consolidado, qualquer coisa que entrega acha que é o suficiente."
+canonical_docs:
+  - docs/AGENTS.md
+  - docs/WORKFLOW.md
+  - docs/DECISION.md
+  - docs/POLICIES/LOOP_GUARD.md
+  - docs/RUNBOOK.md
+anti_loop:
+  step_limit: 20
+  repetition_limit: 3
+  impasse: true
+  alternatives: 2
+  final_fallback: "NÃO SEI por falta de <X>"
+pr_gates:
+  - smoke_test
+  - docs_updated
+  - decision_logged
+  - rollback_documented
+pr_rules:
+  max_lines: 300
+  one_goal: true
+reset_triggers: ["[RESET]", "[IMPASSE]", "[DAILY]"]
