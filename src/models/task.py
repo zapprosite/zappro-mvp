@@ -26,16 +26,31 @@ class TaskStatus(str, enum.Enum):
 class Task(Base):
     __tablename__ = "tasks"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     title = Column(String, nullable=False)
     description = Column(Text)
-    status = Column(Enum(TaskStatus), default=TaskStatus.todo, nullable=False)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
-    assignee_id = Column(Integer, ForeignKey("users.id"))
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    status = Column(
+        Enum(TaskStatus),
+        default=TaskStatus.todo,
+        server_default=TaskStatus.todo.value,
+        nullable=False,
+        index=True,
+    )
+    project_id = Column(Integer, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True)
+    assignee_id = Column(Integer, ForeignKey("users.id"), index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
     due_date = Column(DateTime(timezone=True))
 
     project = relationship("Project", back_populates="tasks")
     assignee = relationship("User", back_populates="assigned_tasks")
-
+    documents = relationship(
+        "Document",
+        back_populates="task",
+        cascade="all,delete-orphan",
+    )

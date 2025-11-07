@@ -18,13 +18,27 @@ class UserRole(str, enum.Enum):
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     email = Column(String, unique=True, index=True, nullable=False)
     name = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
-    role = Column(Enum(UserRole), default=UserRole.operador, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    role = Column(
+        Enum(UserRole),
+        default=UserRole.operador,
+        server_default=UserRole.operador.value,
+        nullable=False,
+    )
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
-    projects = relationship("Project", back_populates="owner", cascade="all,delete-orphan")
+    projects = relationship(
+        "Project",
+        back_populates="owner",
+        cascade="all,delete-orphan",
+    )
     assigned_tasks = relationship("Task", back_populates="assignee")

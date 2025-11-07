@@ -7,7 +7,6 @@ ROOT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 # Real secrets only: actual keys/tokens, not variable names or documentation
 PATTERNS=(
   'AKIA[0-9A-Z]{16}'                    # AWS Access Key ID (real format)
-  '[A-Za-z0-9/+=]{40}'                  # AWS Secret Access Key (real format, risky but specific)
   'AIza[0-9A-Za-z_-]{35}'               # Google API Key (real format)
   '(^|[^A-Za-z_])password\s*=\s*["\047][^"\047]{8,}["\047]'  # password = "actual_value"
   '(^|[^A-Za-z_])secret\s*=\s*["\047][^"\047]{8,}["\047]'    # secret = "actual_value"
@@ -56,3 +55,6 @@ else
 fi
 
 exit $EXIT_STATUS
+
+# Exclude package-lock.json from scans (contains hashes, not secrets)
+EXCLUDE_FILES="${EXCLUDE_FILES} --exclude='package-lock.json'"

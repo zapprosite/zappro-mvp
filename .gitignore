@@ -66,3 +66,9 @@ vendor/
 
 # Backups
 backups/*.tar.gz
+zappro.db
+frontend/package-lock.json
+*.db
+TASK_MANAGER.json
+# Task management files
+TASK_MANAGER*.json

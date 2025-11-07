@@ -19,13 +19,38 @@ class ProjectStatus(str, enum.Enum):
 class Project(Base):
     __tablename__ = "projects"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False, index=True)
     description = Column(String)
-    status = Column(Enum(ProjectStatus), default=ProjectStatus.planning, nullable=False)
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    status = Column(
+        Enum(ProjectStatus),
+        default=ProjectStatus.planning,
+        server_default=ProjectStatus.planning.value,
+        nullable=False,
+        index=True,
+    )
+    owner_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+        nullable=False,
+    )
 
     owner = relationship("User", back_populates="projects")
-    tasks = relationship("Task", back_populates="project", cascade="all,delete-orphan")
+    tasks = relationship(
+        "Task",
+        back_populates="project",
+        cascade="all,delete-orphan",
+    )
+    materials = relationship(
+        "Material",
+        back_populates="project",
+        cascade="all,delete-orphan",
+    )
+    documents = relationship(
+        "Document",
+        back_populates="project",
+        cascade="all,delete-orphan",
+    )

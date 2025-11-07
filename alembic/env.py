@@ -1,8 +1,10 @@
-"""Alembic environment placeholder.
+"""Alembic environment configuration tied to SQLAlchemy models."""
 
-Atualize quando o modelo de dados estiver definido.
-"""
+from __future__ import annotations
 
+import os
+import sys
+from pathlib import Path
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
@@ -15,8 +17,16 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Target metadata: será atualizado com o metadata do SQLAlchemy quando existir.
-target_metadata = None
+# Ensure project root is on sys.path for model imports.
+BASE_DIR = Path(__file__).resolve().parents[1]
+if str(BASE_DIR) not in sys.path:
+    sys.path.append(str(BASE_DIR))
+
+from src.database import Base, DATABASE_URL  # noqa: E402
+from src import models  # noqa: F401,E402  ensure model modules are imported
+
+config.set_main_option("sqlalchemy.url", DATABASE_URL)
+target_metadata = Base.metadata
 
 
 def run_migrations_offline() -> None:
@@ -42,7 +52,13 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            compare_type=True,
+            compare_server_default=True,
+            render_as_batch=connection.dialect.name == "sqlite",
+        )
 
         with context.begin_transaction():
             context.run_migrations()

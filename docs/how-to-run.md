@@ -21,6 +21,17 @@ make backup            # gera artefato em backups/
 
 Health: `GET http://localhost:8000/health → {"status":"ok","version":"0.1.0"}`
 
+### Migrações de Banco (Alembic)
+```bash
+venv/bin/alembic upgrade head    # aplica todas as migrações
+python3 - <<'PY'                 # inspeciona tabelas e esquema com módulo sqlite3
+import sqlite3
+conn = sqlite3.connect("zappro.db")
+print("tables:", conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall())
+print("users schema:", conn.execute("SELECT sql FROM sqlite_master WHERE name='users'").fetchone()[0])
+PY
+```
+
 Auth (dev, SQLite fallback if DATABASE_URL not set):
 - Register: `POST http://localhost:8000/api/v1/auth/register` with JSON `{ "email": "user@example.com", "name": "User", "password": "secret123", "role": "gestor" }`
 - Login: `POST http://localhost:8000/api/v1/auth/login` with JSON `{ "email": "user@example.com", "password": "secret123" }` → `{ access_token, token_type, user }`

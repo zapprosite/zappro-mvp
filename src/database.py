@@ -40,8 +40,12 @@ def init_db() -> None:
     enables local development without a running Postgres by creating tables
     when using SQLite.
     """
-    from .models import user  # noqa: F401  ensure models are imported
+    # Import all models so SQLAlchemy metadata is populated before create_all.
+    from .models import document  # noqa: F401
+    from .models import material  # noqa: F401
+    from .models import project  # noqa: F401
+    from .models import task  # noqa: F401
+    from .models import user  # noqa: F401
 
     if engine.url.get_backend_name() == "sqlite":
         Base.metadata.create_all(bind=engine)
-
