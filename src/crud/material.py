@@ -27,7 +27,7 @@ def create_material(
     if not project:
         return None
 
-    db_material = Material(**material.dict())
+    db_material = Material(**material.model_dump(mode="json"))
     db.add(db_material)
     db.commit()
     db.refresh(db_material)
@@ -75,7 +75,9 @@ def update_material(
     if not db_material:
         return None
 
-    for field, value in material_update.dict(exclude_unset=True).items():
+    for field, value in material_update.model_dump(
+        exclude_unset=True, mode="json"
+    ).items():
         setattr(db_material, field, value)
 
     db.commit()
