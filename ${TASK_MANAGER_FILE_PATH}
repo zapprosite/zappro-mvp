@@ -249,9 +249,9 @@
           "id": "task-29",
           "title": "FASE 4 — Documentation & Deploy",
           "description": "Atualizar README com setup; documentar .env; validar docker-compose up --build; health endpoints ok.",
-          "done": false,
+          "done": true,
           "approved": false,
-          "completedDetails": ""
+          "completedDetails": "Documentação e deploy atualizados:\n- README ganhou sessões de CI/CD automatizado, uso seguro de LLMs e GitHub Projects.\n- docs/AGENTS.md reestruturado com seções Agent Configuration, CI/CD Workflow Rules, Security e Automation Runbook.\n- .env.example reforça que segredos vivem apenas em GitHub Secrets.\n- Novo scripts/deploy.sh gera manifesto com imagem/tag e digest separados, combinando com cd.yml.\n- ci.yml/cd.yml atualizados para matrizes Python/Node, artifacts e notificações.\n- make lint/test executados (todos verdes)."
         }
       ],
       "completed": false
