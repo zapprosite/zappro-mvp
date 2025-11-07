@@ -56,4 +56,3 @@ def test_projects_crud_flow():
 
     after_delete = client.get(f"/api/v1/projects/{project_id}", headers=headers)
     assert after_delete.status_code == 404
-

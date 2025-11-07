@@ -8,7 +8,9 @@ from src.models.project import Project
 from src.schemas.project import ProjectCreate, ProjectUpdate
 
 
-def get_projects(db: Session, owner_id: int, skip: int = 0, limit: int = 100) -> List[Project]:
+def get_projects(
+    db: Session, owner_id: int, skip: int = 0, limit: int = 100
+) -> List[Project]:
     return (
         db.query(Project)
         .filter(Project.owner_id == owner_id)
@@ -58,4 +60,3 @@ def delete_project(db: Session, project_id: int, owner_id: int) -> bool:
     db.delete(db_project)
     db.commit()
     return True
-

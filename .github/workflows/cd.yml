@@ -1,0 +1,248 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+  pull_request_review:
+    types:
+      - submitted
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  deployments: write
+  pull-requests: read
+
+concurrency:
+  group: cd-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+  PREVIEW_BASE_URL: https://preview.zappro.dev
+  PRODUCTION_URL: https://app.zappro.dev
+
+jobs:
+  backend-image:
+    name: Build & Push API image
+    if: github.event_name != 'pull_request_review'
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.pick.outputs.tag }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: repo
+        run: echo "normalized=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - name: Login to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.repo.outputs.normalized }}-backend
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=raw,value=pr-${{ github.event.number }},enable=${{ github.event_name == 'pull_request' }}
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/api.Dockerfile
+          push: true
+          provenance: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - id: pick
+        run: |
+          first_tag=$(printf "%s" "${{ steps.meta.outputs.tags }}" | head -n 1)
+          echo "tag=$first_tag" >> "$GITHUB_OUTPUT"
+
+  frontend-image:
+    name: Build & Push Frontend image
+    if: github.event_name != 'pull_request_review'
+    runs-on: ubuntu-latest
+    outputs:
+      image-tag: ${{ steps.pick.outputs.tag }}
+      image-digest: ${{ steps.build.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: repo
+        run: echo "normalized=${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+      - name: Login to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ steps.repo.outputs.normalized }}-frontend
+          tags: |
+            type=sha
+            type=ref,event=branch
+            type=raw,value=pr-${{ github.event.number }},enable=${{ github.event_name == 'pull_request' }}
+      - name: Build and push image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/frontend.Dockerfile
+          push: true
+          provenance: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - id: pick
+        run: |
+          first_tag=$(printf "%s" "${{ steps.meta.outputs.tags }}" | head -n 1)
+          echo "tag=$first_tag" >> "$GITHUB_OUTPUT"
+
+  deploy-preview:
+    name: Deploy staging preview
+    if: github.event_name == 'pull_request'
+    needs:
+      - backend-image
+      - frontend-image
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: ${{ env.PREVIEW_BASE_URL }}/pr-${{ github.event.number }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run staging deployment script
+        env:
+          BACKEND_IMAGE: ${{ needs.backend-image.outputs.image-tag }}
+          BACKEND_DIGEST: ${{ needs.backend-image.outputs.image-digest }}
+          FRONTEND_IMAGE: ${{ needs.frontend-image.outputs.image-tag }}
+          FRONTEND_DIGEST: ${{ needs.frontend-image.outputs.image-digest }}
+          GIT_REF: ${{ github.head_ref }}
+        run: |
+          bash scripts/deploy.sh staging \
+            "${BACKEND_IMAGE}@${BACKEND_DIGEST}" \
+            "${FRONTEND_IMAGE}@${FRONTEND_DIGEST}" \
+            "${GIT_REF}"
+      - name: Annotate pull request with preview info
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              `✅ Preview deploy ready at ${process.env.PREVIEW_URL}`,
+              `• Backend image: ${process.env.BACKEND_IMAGE}@${process.env.BACKEND_DIGEST}`,
+              `• Frontend image: ${process.env.FRONTEND_IMAGE}@${process.env.FRONTEND_DIGEST}`
+            ].join('\n');
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body
+            });
+        env:
+          PREVIEW_URL: ${{ env.PREVIEW_BASE_URL }}/pr-${{ github.event.number }}
+          BACKEND_IMAGE: ${{ needs.backend-image.outputs.image-tag }}
+          BACKEND_DIGEST: ${{ needs.backend-image.outputs.image-digest }}
+          FRONTEND_IMAGE: ${{ needs.frontend-image.outputs.image-tag }}
+          FRONTEND_DIGEST: ${{ needs.frontend-image.outputs.image-digest }}
+
+  deploy-production:
+    name: Deploy production
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - backend-image
+      - frontend-image
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ env.PRODUCTION_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run production deployment script
+        env:
+          BACKEND_IMAGE: ${{ needs.backend-image.outputs.image-tag }}
+          BACKEND_DIGEST: ${{ needs.backend-image.outputs.image-digest }}
+          FRONTEND_IMAGE: ${{ needs.frontend-image.outputs.image-tag }}
+          FRONTEND_DIGEST: ${{ needs.frontend-image.outputs.image-digest }}
+        run: |
+          bash scripts/deploy.sh production \
+            "${BACKEND_IMAGE}@${BACKEND_DIGEST}" \
+            "${FRONTEND_IMAGE}@${FRONTEND_DIGEST}" \
+            "${GITHUB_SHA}"
+
+  notify-review:
+    name: Notify review decisions
+    if: github.event_name == 'pull_request_review' && (github.event.review.state == 'approved' || github.event.review.state == 'changes_requested')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Slack notification
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          REVIEW_STATE: ${{ github.event.review.state }}
+          REVIEWER: ${{ github.event.review.user.login }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${SLACK_WEBHOOK_URL:-}" ]]; then
+            echo "Slack webhook not configured; skipping."
+            exit 0
+          fi
+          COLOR="#439FE0"
+          if [[ "$REVIEW_STATE" == "changes_requested" ]]; then
+            COLOR="#E01E5A"
+          fi
+          export COLOR
+          payload=$(python - <<'PY'
+import json, os
+payload = {
+    "attachments": [
+        {
+            "color": os.environ["COLOR"],
+            "title": f'{os.environ["REPO"]}#{os.environ["PR_NUMBER"]} — {os.environ["PR_TITLE"]}',
+            "title_link": os.environ["PR_URL"],
+            "fields": [
+                {"title": "Decision", "value": os.environ["REVIEW_STATE"].upper(), "short": True},
+                {"title": "Reviewer", "value": os.environ["REVIEWER"], "short": True},
+            ],
+        }
+    ]
+}
+print(json.dumps(payload))
+PY
+)
+          curl -X POST -H 'Content-type: application/json' --data "$payload" "$SLACK_WEBHOOK_URL"
+      - name: Send email notification
+        if: secrets.CI_SMTP_SERVER != '' && secrets.CI_SMTP_USERNAME != '' && secrets.CI_SMTP_PASSWORD != '' && secrets.CI_SMTP_RECIPIENTS != '' && secrets.CI_SMTP_FROM != '' && secrets.CI_SMTP_PORT != ''
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: ${{ secrets.CI_SMTP_SERVER }}
+          server_port: ${{ secrets.CI_SMTP_PORT }}
+          username: ${{ secrets.CI_SMTP_USERNAME }}
+          password: ${{ secrets.CI_SMTP_PASSWORD }}
+          subject: "[zappro-mvp] PR #${{ github.event.pull_request.number }} — ${{ github.event.review.state }}"
+          body: |
+            Repository: ${{ github.repository }}
+            Pull Request: #${{ github.event.pull_request.number }} — ${{ github.event.pull_request.title }}
+            Decision: ${{ github.event.review.state }}
+            Reviewer: ${{ github.event.review.user.login }}
+            Link: ${{ github.event.pull_request.html_url }}
+          to: ${{ secrets.CI_SMTP_RECIPIENTS }}
+          from: ${{ secrets.CI_SMTP_FROM }}

@@ -9,7 +9,9 @@ from src.models.task import Task
 from src.schemas.task import TaskCreate, TaskUpdate
 
 
-def _assert_project_owner(db: Session, project_id: int, owner_id: int) -> Optional[Project]:
+def _assert_project_owner(
+    db: Session, project_id: int, owner_id: int
+) -> Optional[Project]:
     return (
         db.query(Project)
         .filter(Project.id == project_id, Project.owner_id == owner_id)
@@ -21,7 +23,12 @@ def get_tasks_by_project(db: Session, project_id: int, owner_id: int) -> List[Ta
     project = _assert_project_owner(db, project_id, owner_id)
     if not project:
         return []
-    return db.query(Task).filter(Task.project_id == project_id).order_by(Task.created_at).all()
+    return (
+        db.query(Task)
+        .filter(Task.project_id == project_id)
+        .order_by(Task.created_at)
+        .all()
+    )
 
 
 def get_task(db: Session, task_id: int, owner_id: int) -> Optional[Task]:
@@ -45,7 +52,9 @@ def create_task(db: Session, task: TaskCreate, owner_id: int) -> Optional[Task]:
     return db_task
 
 
-def update_task(db: Session, task_id: int, task_update: TaskUpdate, owner_id: int) -> Optional[Task]:
+def update_task(
+    db: Session, task_id: int, task_update: TaskUpdate, owner_id: int
+) -> Optional[Task]:
     db_task = get_task(db, task_id, owner_id)
     if not db_task:
         return None
@@ -66,4 +75,3 @@ def delete_task(db: Session, task_id: int, owner_id: int) -> bool:
     db.delete(db_task)
     db.commit()
     return True
-

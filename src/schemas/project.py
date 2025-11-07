@@ -34,4 +34,3 @@ class Project(ProjectBase):
 
 class ProjectWithOwner(Project):
     owner: dict
-

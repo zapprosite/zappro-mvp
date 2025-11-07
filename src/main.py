@@ -1,14 +1,11 @@
 """ZapPro API entrypoint with security hardening middleware."""
 
- 
-
 import logging
 from typing import Any, Dict, List
 
-from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy.orm import Session
 from starlette.middleware import Middleware
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
@@ -17,22 +14,17 @@ from .config import Settings, get_settings
 from .crud import project as project_crud
 from .crud import task as task_crud
 from .database import get_db, init_db
-from .models.user import User as UserModel
+from .schemas.project import Project as ProjectSchema
+from .schemas.project import ProjectCreate, ProjectUpdate
+from .schemas.task import Task as TaskSchema
+from .schemas.task import TaskCreate, TaskUpdate
 from .security import (
     FixedWindowRateLimiter,
     RequestIdTracker,
     build_request_id,
     resolve_client_ip,
 )
-from .schemas.auth import Token, User as UserSchema, UserCreate, UserLogin
-from .schemas.project import Project as ProjectSchema, ProjectCreate, ProjectUpdate
-from .schemas.task import Task as TaskSchema, TaskCreate, TaskUpdate
-from .utils.auth import (
-    create_access_token,
-    get_current_user,
-    get_password_hash,
-    verify_password,
-)
+from .utils.auth import get_current_user
 
 LOGGER = logging.getLogger("zappro.api")
 
@@ -137,7 +129,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         try:
             response = await call_next(request)
         except Exception:  # pragma: no cover - exercised via tests
-            LOGGER.exception("Unhandled exception processing request from %s", client_ip)
+            LOGGER.exception(
+                "Unhandled exception processing request from %s", client_ip
+            )
             response = JSONResponse(
                 status_code=500, content={"detail": "Internal Server Error"}
             )
@@ -188,11 +182,19 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     # Routers: inline auth routes (fallback to avoid import issues)
     from fastapi import Depends
     from sqlalchemy.orm import Session
-    from .schemas.auth import User as UserSchema, UserCreate, UserLogin, Token
+
     from .models.user import User as UserModel
+    from .schemas.auth import Token
+    from .schemas.auth import User as UserSchema
+    from .schemas.auth import UserCreate, UserLogin
     from .utils.auth import create_access_token, get_password_hash, verify_password
 
-    @app.post("/api/v1/auth/register", tags=["auth"], response_model=UserSchema, status_code=status.HTTP_201_CREATED)
+    @app.post(
+        "/api/v1/auth/register",
+        tags=["auth"],
+        response_model=UserSchema,
+        status_code=status.HTTP_201_CREATED,
+    )
     def register(user: UserCreate, db: Session = Depends(get_db)) -> UserSchema:
         existing = db.query(UserModel).filter(UserModel.email == user.email).first()
         if existing:
@@ -210,9 +212,18 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     @app.post("/api/v1/auth/login", tags=["auth"], response_model=Token)
     def login(user_credentials: UserLogin, db: Session = Depends(get_db)) -> Token:
-        db_user = db.query(UserModel).filter(UserModel.email == user_credentials.email).first()
-        if not db_user or not verify_password(user_credentials.password, db_user.hashed_password):
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Incorrect email or password")
+        db_user = (
+            db.query(UserModel)
+            .filter(UserModel.email == user_credentials.email)
+            .first()
+        )
+        if not db_user or not verify_password(
+            user_credentials.password, db_user.hashed_password
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Incorrect email or password",
+            )
         token = create_access_token({"sub": db_user.email})
         return {"access_token": token, "token_type": "bearer", "user": db_user}  # type: ignore[dict-item]
 
@@ -227,7 +238,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         current_user=Depends(get_current_user),
         db: Session = Depends(get_db),
     ) -> List[ProjectSchema]:
-        return project_crud.get_projects(db, owner_id=current_user.id, skip=skip, limit=limit)
+        return project_crud.get_projects(
+            db, owner_id=current_user.id, skip=skip, limit=limit
+        )
 
     @app.post(
         "/api/v1/projects",
@@ -240,7 +253,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         current_user=Depends(get_current_user),
         db: Session = Depends(get_db),
     ) -> ProjectSchema:
-        return project_crud.create_project(db, project=project, owner_id=current_user.id)
+        return project_crud.create_project(
+            db, project=project, owner_id=current_user.id
+        )
 
     @app.get(
         "/api/v1/projects/{project_id}",
@@ -252,7 +267,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         current_user=Depends(get_current_user),
         db: Session = Depends(get_db),
     ) -> ProjectSchema:
-        db_project = project_crud.get_project(db, project_id=project_id, owner_id=current_user.id)
+        db_project = project_crud.get_project(
+            db, project_id=project_id, owner_id=current_user.id
+        )
         if not db_project:
             raise HTTPException(status_code=404, detail="Project not found")
         return db_project
@@ -269,7 +286,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         db: Session = Depends(get_db),
     ) -> ProjectSchema:
         db_project = project_crud.update_project(
-            db, project_id=project_id, project_update=project_update, owner_id=current_user.id
+            db,
+            project_id=project_id,
+            project_update=project_update,
+            owner_id=current_user.id,
         )
         if not db_project:
             raise HTTPException(status_code=404, detail="Project not found")
@@ -285,7 +305,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         current_user=Depends(get_current_user),
         db: Session = Depends(get_db),
     ) -> None:
-        success = project_crud.delete_project(db, project_id=project_id, owner_id=current_user.id)
+        success = project_crud.delete_project(
+            db, project_id=project_id, owner_id=current_user.id
+        )
         if not success:
             raise HTTPException(status_code=404, detail="Project not found")
 
@@ -299,7 +321,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         current_user=Depends(get_current_user),
         db: Session = Depends(get_db),
     ) -> List[TaskSchema]:
-        return task_crud.get_tasks_by_project(db, project_id=project_id, owner_id=current_user.id)
+        return task_crud.get_tasks_by_project(
+            db, project_id=project_id, owner_id=current_user.id
+        )
 
     @app.post(
         "/api/v1/tasks",
@@ -367,4 +391,3 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
 
 app = create_app()
- 

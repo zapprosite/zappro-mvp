@@ -1,35 +1,54 @@
-# AGENTS — Manual Operacional para LLMs
+# AGENTS.md - ZapPro MVP
 
-Estas instruções especializam o `AGENTS.md` raiz para qualquer agente/automation que atue dentro de `docs/`, `scripts/`, `frontend/` ou `src/`.
+Estas instruções complementam `AGENTS.md` (raiz) para qualquer automação/LLM que opere em `docs/`, `scripts/`, `frontend/` ou `src/`. Leia ambos antes de agir.
 
-## Fluxo recomendado
-1. **Contrato**: leia `PRD.md`, `AGENTS.md` (raiz) e este documento antes de planejar algo.
-2. **Planejamento**: derive um plano curto (≤5 passos) e valide com humano via PR/issue antes de executar.
-3. **Bootstrap**: somente após aprovação execute alterações atômicas focadas no objetivo.
-4. **Validação**: rode `bash scripts/security-scan.sh` + `bash scripts/validate.sh` (ou os jobs equivalentes no GitHub Actions) antes de propor PR.
-5. **Evidências**: anexe nos comentários de PR quais etapas do plano foram cumpridas, riscos e próximos passos.
+## Agent Configuration
+- Model: **GPT-5-Codex (high reasoning)**
+- Scope: **Read code, write workflows, manage PRs** — nunca editar `secrets/**` ou `infra/prod/**` sem CODEOWNERS.
+- Triggers: **PR opened, main branch push**; execuções ad-hoc precisam de aprovação humana registrada em issue/PR.
+- Permissions: **read:code, write:actions, write:labels**. Nenhuma outra permissão deve ser solicitada pelo agente.
 
-## Guardrails técnicos
-- **Sem rede externa** durante a análise local e nenhum download de dependência não declarado em `requirements.txt` ou `frontend/package.json`.
-- **Sem credenciais**: use placeholders (`<token>`). Secrets reais ficam apenas em `.env` local ou nos Actions Secrets (`SLACK_WEBHOOK_URL`, `CI_SMTP_*`, tokens de deploy). Consulte `.env.example`.
-- **Arquivos proibidos**: nada em `secrets/**` ou `infra/prod/**` sem aprovação explícita dos CODEOWNERS.
-- **Scripts obrigatórios**: toda automação que mexa em deploy ou segurança deve registrar logs em `logs/` e reutilizar `scripts/deploy.sh`, `scripts/security-scan.sh` e `scripts/secret-scan.sh`.
-- **Tests/docs juntos**: alterações em `src/**` exigem atualizar `tests/**` e documentação correlata (`docs/`, `README.md`).
+## CI/CD Workflow Rules
+- All PRs must pass lint + tests (`make lint`, `make test`) before merge; re-rodar localmente `bash scripts/validate.sh`.
+- Matrix builds: **Python 3.11/3.12** e **Node 20/22** (ver `.github/workflows/ci.yml`). Falhas devem ser citadas no PR junto com links dos artifacts.
+- Staging preview obrigatório em PR (`cd.yml` → environment `staging`); produção apenas em push na `main`.
+- Coverage threshold mínimo: **80%** (`pytest --cov ... --cov-report=xml`). PRs devem anexar o relatório se cobertura cair abaixo do baseline.
+- Execute `bash scripts/security-scan.sh` antes de pedir review e anexe o resumo no PR (mesmo se CI já rodar).
 
-## LLMs + CI/CD
-- **CI (`ci.yml`)**: garante lint, cobertura, Playwright, security scan e artifacts. Se um agente propuser mudanças que afetam build, descreva no PR quais matrizes (Python/Node) precisam de atenção.
-- **CD (`cd.yml`)**: gera imagens no GHCR e executa `scripts/deploy.sh`. Ajuste o script ao provedor real (SSH, Kubernetes, Fly.io) sem remover logs ou validação de `docker compose config`.
-- **Notificações**: Slack e email são disparados em reviews. Nunca grave `SLACK_WEBHOOK_URL` ou credenciais SMTP em arquivos; mantenha-os apenas nos secrets.
+## Security
+- Never commit secrets (use GitHub Secrets). `.env.example` é a única fonte versionada; valores reais ficam fora do Git ou em Vaults.
+- Secret scan via pre-push hook: rode `bash scripts/secret-scan.sh` (já incluso em `scripts/security-scan.sh`); PR sem esse log será bloqueado.
+- LLM usage: read-only on sensitive files; qualquer tentativa de leitura fora dos diretórios permitidos precisa de justificativa em comentário público.
+- Sem rede externa para instalar dependências não listadas em `requirements.txt` ou `frontend/package.json`. Logs obrigatórios em `logs/`.
 
-## Integração com GitHub Projects
-- Sempre vincule PRs/Issues a um card do Project. Quando a etapa `deploy-preview` comentar o link da prévia, mova o card para “Revisão”.
-- Use automações de Projects para mover cards para “Pronto para deploy” quando `CI / policy` e `CD / deploy production` ficarem verdes.
+## Automation Runbook
+- Stale issue labeler: marque `stale` após **30 dias** sem atividade e notifique o autor; fechar somente após +7 dias sem resposta.
+- Auto-assign reviewers: `@Will.zappro` (backend) e `@jpmarcenaria` (frontend) em toda alteração nos respectivos diretórios.
+- Deploy preview URL deve ser comentado automaticamente no PR (saída do job `deploy-preview`); humanos confirmam validação antes do merge.
 
-## Exemplos de automações aprovadas
+### Operação diária em 5 passos
+1. **Contrato** — leia `PRD.md`, `AGENTS.md` (raiz) e este arquivo antes de planejar.
+2. **Planejamento** — proponha plano curto (≤5 passos) e aguarde validação explícita.
+3. **Bootstrap** — execute apenas mudanças atômicas. Se tocar `src/**`, atualize `tests/**` e documentação relacionada.
+4. **Validação** — rode `bash scripts/security-scan.sh` + `bash scripts/validate.sh`. Falha interrompe o fluxo até correção.
+5. **Evidências** — abra PR com plano cumprido, riscos, cobertura, próximos passos e link do preview.
+
+### Guardrails técnicos rápidos
+- Sem rede externa durante análise local.
+- Scripts críticos: reutilize `scripts/deploy.sh`, `scripts/security-scan.sh`, `scripts/secret-scan.sh`.
+- Logs de automação devem ir para `logs/` com carimbo de data ISO-8601.
+- Use placeholders (`<token>`) em prompts/comentários públicos.
+
+### GitHub Projects e sincronização
+- Vincule Issues/PRs a um card do Project (colunas: Backlog → Em andamento → Revisão → Pronto para deploy).
+- Automatize transição para **Revisão** quando o PR é aberto e para **Pronto para deploy** quando `CI / policy` + `CD / deploy production` estiverem verdes.
+- Integrações externas (Linear/ClickUp) só podem ler dados após o workflow `workflow_run` concluir com sucesso.
+
+### Automations aprovadas
 | Tarefa | Expectativa |
 | --- | --- |
-| Atualizar dependências | Use `scripts/dependency-watch.sh` e abra PR citando CVEs. |
-| Criar blueprint de feature | Referencie seções do `PRD.md`, atualize `docs/*.md` e descreva riscos no PR. |
-| Ajustar pipelines | Atualize `<repo>/.github/workflows/*.yml`, explique decisões no README e valide com `scripts/validate.sh`. |
+| Atualizar dependências | Use `scripts/dependency-watch.sh`, cite CVEs e rode CI completo. |
+| Criar blueprint de feature | Baseie-se em `PRD.md`, atualize `docs/*.md`, descreva riscos/testes. |
+| Ajustar pipelines | Edite `.github/workflows/*.yml`, explique decisões no README e valide com `scripts/validate.sh`. |
 
-Falhas em qualquer etapa acima devem parar o agente imediatamente e solicitar revisão humana.
+Falhas em qualquer etapa acima devem parar o agente e acionar revisão humana imediatamente.

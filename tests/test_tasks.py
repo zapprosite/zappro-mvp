@@ -8,9 +8,16 @@ from src.main import app
 def register_and_login(client: TestClient) -> tuple[dict[str, str], int]:
     email = f"tasker-{uuid4().hex[:8]}@example.com"
     password = "secret123"
-    register_payload = {"email": email, "name": "Task Owner", "password": password, "role": "gestor"}
+    register_payload = {
+        "email": email,
+        "name": "Task Owner",
+        "password": password,
+        "role": "gestor",
+    }
     client.post("/api/v1/auth/register", json=register_payload)
-    login_resp = client.post("/api/v1/auth/login", json={"email": email, "password": password})
+    login_resp = client.post(
+        "/api/v1/auth/login", json={"email": email, "password": password}
+    )
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
     project_resp = client.post(

@@ -39,4 +39,3 @@ class Task(TaskBase):
 class TaskWithDetails(Task):
     assignee: Optional[dict] = None
     project: Optional[dict] = None
-

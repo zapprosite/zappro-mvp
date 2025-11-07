@@ -8,7 +8,6 @@ from src.models.user import User as UserModel
 from src.schemas.auth import Token, User, UserCreate, UserLogin
 from src.utils.auth import create_access_token, get_password_hash, verify_password
 
-
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 
@@ -47,4 +46,3 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)) -> Token:
         "token_type": "bearer",
         "user": user,  # type: ignore[dict-item]
     }
-

@@ -2,12 +2,28 @@ name: CI
 
 on:
   push:
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+env:
+  PYTHONUNBUFFERED: "1"
 
 jobs:
   backend:
-    name: Backend Checks
+    name: Backend (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12"]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -15,53 +31,52 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-          cache: "pip"
+          python-version: ${{ matrix.python-version }}
+          cache: pip
       - name: Install dependencies
         run: |
-          python -m venv venv
-          source venv/bin/activate
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-      - name: Lint
+      - name: Lint & format check
         run: |
-          source venv/bin/activate
           make lint
-      - name: Test
-        run: |
-          source venv/bin/activate
-          make test
-      - name: Security Scan
-        run: |
-          source venv/bin/activate
-          make security
-      - name: Format Check
-        run: |
-          source venv/bin/activate
           make fmt
           git diff --exit-code
-      - name: Validate script
+      - name: Pytest with coverage
         run: |
-          bash scripts/validate.sh
-      - name: Policy Check (PR only)
-        if: github.event_name == 'pull_request'
-        run: |
-          CHANGED_FILES="$(git diff --name-only origin/${{ github.base_ref }}...HEAD)" \
-          bash scripts/policy-check.sh
+          mkdir -p reports
+          pytest --maxfail=1 --disable-warnings \
+            --cov=src --cov-report=xml --cov-report=term-missing \
+            --junitxml=reports/backend-tests-${{ matrix.python-version }}.xml
+          mv coverage.xml coverage-python-${{ matrix.python-version }}.xml
+      - name: Upload backend artifacts
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-python-${{ matrix.python-version }}
+          path: |
+            .coverage
+            coverage-python-${{ matrix.python-version }}.xml
+            reports/backend-tests-${{ matrix.python-version }}.xml
+          retention-days: 7
 
   frontend:
-    name: Frontend Dummy Checks
+    name: Frontend (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ["20", "22"]
     steps:
       - uses: actions/checkout@v4
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
+          node-version: ${{ matrix.node-version }}
+          cache: npm
           cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
         run: npm ci
@@ -69,5 +84,91 @@ jobs:
         run: npm run lint -- --no-cache || npm run lint
       - name: Typecheck
         run: npm run typecheck
-      - name: Playwright security smoke
-        run: npm run test:e2e -- --reporter=list
+      - name: Install Playwright browsers
+        if: matrix.node-version == '22'
+        run: npx playwright install --with-deps
+      - name: Playwright E2E
+        if: matrix.node-version == '22'
+        env:
+          PLAYWRIGHT_JUNIT_OUTPUT_NAME: test-results/playwright-junit-${{ matrix.node-version }}.xml
+        run: |
+          mkdir -p test-results
+          npm run test:e2e -- --reporter=list,junit
+      - name: Upload frontend artifacts
+        if: (success() || failure()) && matrix.node-version == '22'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-node-${{ matrix.node-version }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs:
+      - backend
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run security scan
+        run: make security
+      - name: Upload security logs
+        if: success() || failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-logs
+          path: logs/security.log
+          if-no-files-found: warn
+          retention-days: 7
+
+  validate:
+    name: Integration Validate
+    runs-on: ubuntu-latest
+    needs:
+      - backend
+      - frontend
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run validate script
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+        run: bash scripts/validate.sh
+
+  policy:
+    name: Policy Check
+    runs-on: ubuntu-latest
+    needs:
+      - validate
+      - security
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Policy diff guard
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          CHANGED_FILES="$(git diff --name-only origin/${BASE_REF}...HEAD)" \
+          bash scripts/policy-check.sh

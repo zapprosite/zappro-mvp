@@ -10,19 +10,19 @@ from __future__ import annotations
 
 import base64
 import hashlib
+import hmac
 import json
 import os
 import secrets
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from src.database import get_db
 from src.models.user import User
-
 
 JWT_SECRET = os.getenv("ZAPPRO_JWT_SECRET", "change_me_dev")
 JWT_ALG = "HS256"
@@ -36,7 +36,7 @@ def _b64url(data: bytes) -> str:
 
 
 def _b64url_decode(data: str) -> bytes:
-    pad = '=' * (-len(data) % 4)
+    pad = "=" * (-len(data) % 4)
     return base64.urlsafe_b64decode(data + pad)
 
 
@@ -48,7 +48,9 @@ def create_access_token(data: Dict[str, Any]) -> str:
     header_b64 = _b64url(json.dumps(header, separators=",:").encode("utf-8"))
     payload_b64 = _b64url(json.dumps(to_encode, separators=",:").encode("utf-8"))
     signing_input = f"{header_b64}.{payload_b64}".encode("ascii")
-    signature = hmac.new(JWT_SECRET.encode("utf-8"), signing_input, hashlib.sha256).digest()
+    signature = hmac.new(
+        JWT_SECRET.encode("utf-8"), signing_input, hashlib.sha256
+    ).digest()
     return f"{header_b64}.{payload_b64}.{_b64url(signature)}"
 
 
@@ -60,7 +62,9 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)) 
         raise HTTPException(status_code=401, detail="Invalid token format")
 
     signing_input = f"{header_b64}.{payload_b64}".encode("ascii")
-    expected = hmac.new(JWT_SECRET.encode("utf-8"), signing_input, hashlib.sha256).digest()
+    expected = hmac.new(
+        JWT_SECRET.encode("utf-8"), signing_input, hashlib.sha256
+    ).digest()
     actual = _b64url_decode(signature_b64)
     if not hmac.compare_digest(expected, actual):
         raise HTTPException(status_code=401, detail="Invalid token signature")

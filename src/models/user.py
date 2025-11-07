@@ -3,8 +3,8 @@ from __future__ import annotations
 import enum
 
 from sqlalchemy import Column, DateTime, Enum, Integer, String
-from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 from src.database import Base
 
@@ -28,7 +28,9 @@ class User(Base):
         server_default=UserRole.operador.value,
         nullable=False,
     )
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
     updated_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
