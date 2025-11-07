@@ -1,0 +1,3 @@
+# WORKFLOW
+Branching: trunk + feature branches...
+(reste do conteúdo conforme padrão Tutor Web)

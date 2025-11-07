@@ -1,0 +1,2 @@
+Indicadores:
+(reste do conteúdo)
