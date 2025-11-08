@@ -1,17 +1,4 @@
-SAFE OVERNIGHT: Create comprehensive API documentation.
+> **Movido para arquivo**  
+> Caminho: `docs/_archive/overnight_task.txt`  
+> Este é um stub. Não editar aqui. Consultar o arquivo no caminho acima.
 
-Tasks:
-1. Generate docs/api-endpoints.md documenting all FastAPI routes (health, projects, tasks, auth) with request/response examples
-2. Create docs/testing-guide.md with pytest commands, coverage setup, CI/CD integration
-3. Create docs/deployment-checklist.md with pre-production steps
-
-CONSTRAINTS:
-- NO code modifications
-- NO src/ changes
-- Only create/update markdown files in docs/ directory
-- Each file: commit separately with message "docs: add [filename]"
-- Validation: verify files created with ls docs/
-- MAX TIME: 3 hours
-- If any file takes >30 min: skip and move to next
-
-Report: files created + word count

@@ -1,0 +1,21 @@
+name: docs-link-check
+on:
+  pull_request:
+  push:
+    paths:
+      - '**/*.md'
+jobs:
+  lychee:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lycheeverse/lychee-action@v1
+        with:
+          args: >
+            --verbose
+            --no-progress
+            --exclude-path docs/_archive
+            --accept 200,206,429
+            .
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

@@ -266,3 +266,7 @@ MIT License — veja https://opensource.org/licenses/MIT para detalhes.
 - **Founder:** Will Refrimix (@willrefrimix)
 - **Tech Lead:** @jpmarcenaria
 - **Email:** dev@zappro.site
+
+
+## Documentação
+Consulte o índice: [docs/INDEX.md](docs/INDEX.md)

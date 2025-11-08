@@ -1,10 +1,4 @@
-# Templates consolidados
+> **Movido para arquivo**  
+> Caminho: `docs/_archive/tutor/all_templates.md`  
+> Este é um stub. Não editar aqui. Consultar o arquivo no caminho acima.
 
-> [!NOTE]
-> Estes templates foram consolidados no arquivo `tutor/TUTOR_MASTER_PROMPT.md`.
-> Use-o como referência única e atualizada.
-
-- Governança (AGENTS): ver `docs/AGENTS.md`
-- Workflow (Git/PR): ver `docs/WORKFLOW.md`
-- Matriz DECISION: ver `docs/DECISION.md`
-- Checklists: ver `tutor/TUTOR_MASTER_PROMPT.md`
