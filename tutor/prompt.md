@@ -229,21 +229,15 @@ Antes de sair:
 → Refinar prompt (ser mais específico)
 → Retry com MCP mapeado explicitamente
 
-text
-
 ### Se Código Falhar em Testes >5 Vezes
 → Escalar para manual review
 → Abrir issue com label "codex-blocked"
 → Slack notify @willrefrimix
 
-text
-
 ### Se Secrets Forem Detectados
 → Bloqueia commit (pre-push hook)
 → Email security@zappro.site
 → Revert commits, remover secret, retry
-
-text
 
 ---
 

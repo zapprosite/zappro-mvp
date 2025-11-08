@@ -6,6 +6,13 @@
 
 ---
 
+> [!IMPORTANT]
+> Quick Reference
+>
+> - Report vulnerabilities to: security@zappro.site (do not open public issues)
+> - Initial triage SLA: 48 hours
+> - Severity handling: Critical (<24h patch), High (24h), Medium (≤1 week), Low (≤30 days)
+
 [!IMPORTANT]
 Vulnerabilidade? Não abra issue pública. Envie para security@zappro.site. SLA de triagem: 48 horas.
 

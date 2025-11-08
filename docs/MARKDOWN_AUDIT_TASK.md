@@ -61,15 +61,17 @@ Audit ALL .md files in ZapPro repository and improve:
 - Inline code: backticks for commands/file paths
 - Code blocks: ALWAYS specify language (bash, python, yaml, json, sql, html, typescript)
 
-Example:
+Example (good):
+
+```bash
 make test
+```
 
-text
+Example (bad):
 
-NOT:
-make test
-
-text
+```text
+make test  # no language tag, ambiguous context
+```
 
 ### Tables
 ✅ **DO:**
@@ -84,24 +86,22 @@ text
 - Overly complex multi-column tables
 
 ### GitHub Alerts (NEW: 2025)
-Use these for important information:
+Use these for important information (GitHub-flavored alerts):
 
-[!NOTE]
-This is general information
+> [!NOTE]
+> This is general information.
 
-[!TIP]
-This is helpful advice
+> [!TIP]
+> Helpful advice.
 
-[!IMPORTANT]
-Critical information
+> [!IMPORTANT]
+> Critical information.
 
-[!WARNING]
-Warning or caution
+> [!WARNING]
+> Warning or caution.
 
-[!CAUTION]
-Danger - be careful
-
-text
+> [!CAUTION]
+> Danger — be careful.
 
 ### Links & Navigation
 ✅ **DO:**
@@ -195,8 +195,19 @@ text
 
 ## Validation Steps (REQUIRED Before Commit)
 
-1. **Markdown Lint Check**
-find . -name "*.md" -type f | head -10
+1. Markdown link and fence sanity check
+
+```bash
+rg -n "^```(\s*$|[^a-zA-Z])" -g "!venv/**" -g "!**/.pytest_cache/**" || true
+```
+
+2. List Markdown files targeted (manual review of diffs)
+
+```bash
+find . -name "*.md" -type f \
+  -not -path "*/venv/*" \
+  -not -path "*/.pytest_cache/*" | sort
+```
 
 Verify each file exists
 text

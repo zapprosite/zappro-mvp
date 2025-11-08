@@ -245,83 +245,58 @@ namespace: zappro
 id: daily-health-check
 description: Daily health checks + performance metrics
 triggers:
-id: daily-schedule
-type: io.kestra.core.models.triggers.types.Schedule
-cron: "0 2 * * *" # 02:00 BRT daily
+  - id: daily-schedule
+    type: io.kestra.core.models.triggers.types.Schedule
+    cron: "0 2 * * *" # 02:00 BRT daily
 tasks:
-id: run-tests
-type: io.kestra.core.tasks.scripts.Bash
-commands:
-"cd /app && make test"
-id: security-scan
-type: io.kestra.core.tasks.scripts.Bash
-commands:
-"bash scripts/secret-scan.sh && bash scripts/security-scan.sh"
-id: notify-slack
-type: io.kestra.plugin.notifications.slack.SlackIncomingWebhook
-webhook: "{{ env.SLACK_WEBHOOK_URL }}"
-payload:
-text: "✅ Daily health check passed"
-id: backup-database
-type: io.kestra.core.tasks.scripts.Bash
-commands:
-"pg_dump {{ env.DATABASE_URL }} > /backups/$(date +%Y-%m-%d).sql"
+  - id: run-tests
+    type: io.kestra.core.tasks.scripts.Bash
+    commands:
+      - cd /app && make test
+  - id: security-scan
+    type: io.kestra.core.tasks.scripts.Bash
+    commands:
+      - bash scripts/secret-scan.sh
+      - bash scripts/security-scan.sh
+  - id: notify-slack
+    type: io.kestra.plugin.notifications.slack.SlackIncomingWebhook
+    webhook: "{{ env.SLACK_WEBHOOK_URL }}"
+    payload:
+      text: "✅ Daily health check passed"
+  - id: backup-database
+    type: io.kestra.core.tasks.scripts.Bash
+    commands:
+      - pg_dump {{ env.DATABASE_URL }} > /backups/$(date +%Y-%m-%d).sql
 ```
 
 ### Chatwoot Bot Integration (Customer Support)
 
 ```python
-# src/integrations/chatwoot_bot.py
-from fastapi import APIRouter, HTTPException
-from langchain import OpenAI, ConversationChain
-from langchain.memory import ConversationBufferMemory
+# src/integrations/chatwoot_bot.py (example)
+from fastapi import APIRouter
 
 router = APIRouter(prefix="/webhooks/chatwoot", tags=["chatbot"])
 
 @router.post("/incoming-message")
-def incoming_message(payload: dict):
-    # TODO: implement handler (example placeholder)
-    return {"ok": True}
+async def incoming_message(payload: dict):
+    """Webhook from Chatwoot: customer sends message.
+    Respond with LLM, escalate when needed.
+    """
+    conversation_id = payload.get("conversation_id")
+    message = payload.get("message", "")
+
+    # TODO: replace with real vector search + LLM call
+    response_text = f"Ack: {message[:80]}"
+
+    await send_chatwoot_reply(conversation_id, response_text)
+    return {"status": "ok", "conversation_id": conversation_id}
+
+
+async def send_chatwoot_reply(conv_id: str, text: str) -> None:
+    """Send message back via Chatwoot API (placeholder)."""
+    # Example: requests.post(CHATWOOT_URL, json={"conversation_id": conv_id, "text": text})
+    return None
 ```
-async def handle_chatwoot_message(payload: dict):
-"""
-Webhook from Chatwoot: customer sends message
-LLM bot responds, escalate if needed
-"""
-customer_id = payload.get("customer_id")
-message = payload.get("message")
-conversation_id = payload.get("conversation_id")
-text
-# Search knowledge base (RAG)
-knowledge = await search_knowledge_base(message)
-
-# LLM response
-memory = ConversationBufferMemory()
-chain = ConversationChain(
-    llm=OpenAI(model="gpt-4"),
-    memory=memory,
-    system_prompt="Você é suporte técnico ZapPro. Use knowledge base para responder."
-)
-response = chain.run(message + "\n\nKnowledge: " + knowledge)
-
-# Send response back to Chatwoot
-await send_chatwoot_reply(conversation_id, response)
-
-# If escalation needed
-if "escalation_required" in response:
-    await assign_to_human(conversation_id, "support_team")
-
-return {"status": "ok", "message_id": conversation_id}
-
-async def search_knowledge_base(query: str) -> str:
-"""Vector search in ZapPro docs + FAQs"""
-# Implementation: Pinecone/Weaviate vector DB
-pass
-async def send_chatwoot_reply(conv_id: str, text: str):
-"""Send message back via Chatwoot API"""
-# Implementation: POST to Chatwoot API
-pass
-text
 
 ---
 
@@ -329,142 +304,100 @@ text
 
 ### Kanban Workflow States
 
-
+```text
 BACKLOG → IN PROGRESS → IN REVIEW → DONE → ARCHIVED
-↓ ↓ ↓ ↓
-New Working Reviewers Merged
-Issue (Assigned) (2 min) (Deployed)
-text
+           ↓            ↓             ↓
+        Working     Reviewers      Deployed
+        Assigned      (2+)         (Merged)
+```
 
 ### GitHub Projects Automation Rules
 
-
-.github/workflows/kanban-automation.yml
+```yaml
+# .github/workflows/kanban-automation.yml
 name: Kanban Automation
 on:
-issues:
-types: [opened, closed]
-pull_request:
-types: [opened, ready_for_review, review_requested, closed]
+  issues:
+    types: [opened, closed]
+  pull_request:
+    types: [opened, ready_for_review, review_requested, closed]
 jobs:
-update-board:
-runs-on: ubuntu-latest
-steps:
-- name: New issue → Backlog
-if: github.event.action == 'opened' && github.event.issue
-uses: actions/github-script@v6
-with:
-script: |
-const issue = context.payload.issue;
-const project = await github.rest.projects.listForRepo({
-owner: context.repo.owner,
-repo: context.repo.repo
-});
-// Add issue to "Backlog" column
-text
-  - name: PR opened → In Progress (with assignee)
-    if: github.event.action == 'opened' && github.event.pull_request
-    run: |
-      # Move PR to "In Progress" column
-      # Auto-assign reviewers based on path filters
-
-  - name: PR merged → Move to Done
-    if: github.event.action == 'closed' && github.event.pull_request.merged
-    run: |
-      # Move to "Done" column
-      # Mark as deployed if deploy succeeds
-
-  - name: Stale (30 days) → Archive
-    uses: actions/stale@v8
-    with:
-      days-before-stale: 30
-      operations-per-run: 100
-      stale-label: 'stale'
-
-text
+  update-board:
+    runs-on: ubuntu-latest
+    steps:
+      - name: New issue → Backlog
+        if: github.event.action == 'opened' && github.event.issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const issue = context.payload.issue;
+            // TODO: add to Backlog column via Projects API
+      - name: PR opened → In Progress (with assignee)
+        if: github.event.action == 'opened' && github.event.pull_request
+        run: echo "Move PR to In Progress"
+      - name: PR merged → Move to Done
+        if: github.event.action == 'closed' && github.event.pull_request.merged
+        run: echo "Move PR to Done"
+      - name: Stale (30 days) → Archive
+        uses: actions/stale@v8
+        with:
+          days-before-stale: 30
+          operations-per-run: 100
+          stale-label: stale
+```
 
 ### ADM Dashboard (Real-time Metrics)
 
-
-src/api/v1/admin/dashboard.py
-from fastapi import APIRouter, Depends, HTTPException
+```python
+# src/api/v1/admin/dashboard.py (excerpt)
+from fastapi import APIRouter, Depends
 from datetime import datetime, timedelta
 from sqlalchemy import func
+
 router = APIRouter(prefix="/v1/admin/dashboard", tags=["admin"])
+
 @router.get("/kanban-metrics")
 async def get_kanban_metrics(db: Session = Depends(get_db)):
-"""
-Real-time dashboard:
-- Total issues/PRs by status
-- Cycle time (avg days in each stage)
-- Burndown chart
-- Agent performance metrics
-"""
-now = datetime.utcnow()
-week_ago = now - timedelta(days=7)
-text
-metrics = {
-    "issues": {
-        "backlog": db.query(Issue).filter(Issue.state == "BACKLOG").count(),
-        "in_progress": db.query(Issue).filter(Issue.state == "IN_PROGRESS").count(),
-        "in_review": db.query(Issue).filter(Issue.state == "IN_REVIEW").count(),
-        "done": db.query(Issue).filter(Issue.state == "DONE").count()
-    },
-    "prs": {
-        "total": db.query(PullRequest).count(),
-        "merged": db.query(PullRequest).filter(PullRequest.merged_at.isnot(None)).count(),
-        "avg_review_time_hours": db.query(
-            func.avg(
-                func.extract("epoch", PullRequest.merged_at - PullRequest.created_at) / 3600
-            )
-        ).scalar() or 0
-    },
-    "agents": {
-        "code_agent": {
-            "tasks_completed": db.query(AgentLog).filter(
-                AgentLog.agent_type == "code",
-                AgentLog.status == "SUCCESS",
-                AgentLog.created_at >= week_ago
-            ).count(),
-            "success_rate": 0.95,  # 95% PRs merged without issues
-            "avg_time_hours": 2.5
+    """Real-time dashboard metrics."""
+    now = datetime.utcnow()
+    week_ago = now - timedelta(days=7)
+    metrics = {
+        "issues": {
+            "backlog": db.query(Issue).filter(Issue.state == "BACKLOG").count(),
+            "in_progress": db.query(Issue).filter(Issue.state == "IN_PROGRESS").count(),
+            "in_review": db.query(Issue).filter(Issue.state == "IN_REVIEW").count(),
+            "done": db.query(Issue).filter(Issue.state == "DONE").count(),
         },
-        "qa_agent": {
-            "tests_run": 156,
-            "coverage": 82,  # 82%
-            "bugs_found": 3
-        }
-    },
-    "cycle_time": {
-        "avg_days_backlog_to_done": 7.2,
-        "fastest_issue_hours": 2,
-        "slowest_issue_days": 30
+        "prs": {
+            "total": db.query(PullRequest).count(),
+            "merged": db.query(PullRequest).filter(PullRequest.merged_at.isnot(None)).count(),
+            "avg_review_time_hours": db.query(
+                func.avg(
+                    func.extract("epoch", PullRequest.merged_at - PullRequest.created_at) / 3600
+                )
+            ).scalar() or 0,
+        },
     }
-}
-
-return metrics
+    return metrics
 
 @router.get("/burndown-chart")
 async def get_burndown_chart(db: Session = Depends(get_db)):
-"""Sprint burndown: issues completed vs planned"""
-sprint_start = datetime.utcnow().replace(day=1)
-text
-daily_data = []
-for day in range(30):
-    date = sprint_start + timedelta(days=day)
-    completed = db.query(Issue).filter(
-        Issue.completed_at <= date,
-        Issue.sprint == "current"
-    ).count()
-    daily_data.append({
-        "date": date.isoformat(),
-        "completed": completed,
-        "planned": 50  # hardcoded sprint size
-    })
-
-return {"burndown": daily_data}
-
-text
+    """Sprint burndown: issues completed vs planned."""
+    sprint_start = datetime.utcnow().replace(day=1)
+    daily_data = []
+    for day in range(30):
+        date = sprint_start + timedelta(days=day)
+        completed = db.query(Issue).filter(
+            Issue.completed_at <= date,
+            Issue.sprint == "current"
+        ).count()
+        daily_data.append({
+            "date": date.isoformat(),
+            "completed": completed,
+            "planned": 50,
+        })
+    return {"burndown": daily_data}
+```
 
 ---
 
@@ -472,65 +405,54 @@ text
 
 ### Pre-Commit Hooks (Local)
 
-
-#!/bin/bash
-.git/hooks/pre-commit
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
 echo "🔍 Running pre-commit checks..."
-1. Lint
-make lint || exit 1
-2. Tests
-make test || exit 1
-3. Secret scan
-bash scripts/secret-scan.sh || exit 1
-4. Type check (Python)
+
+make lint
+make test
+bash scripts/secret-scan.sh
 mypy src/ || echo "⚠️ Type hints incomplete"
+
 echo "✅ Pre-commit checks passed"
-text
+```
 
 ### CI Pipeline (GitHub Actions)
 
-
+```yaml
 name: CI/CD Full Pipeline
 on: [push, pull_request]
 jobs:
-validate:
-runs-on: ubuntu-latest
-strategy:
-matrix:
-python-version: ['3.11', '3.12']
-node-version: ['20', '22']
-text
-steps:
-  - uses: actions/checkout@v4
-  
-  - name: Lint
-    run: make lint
-  
-  - name: Tests
-    run: make test
-  
-  - name: Security Scan
-    run: bash scripts/security-scan.sh
-  
-  - name: Coverage Report
-    uses: codecov/codecov-action@v3
-    with:
-      token: ${{ secrets.CODECOV_TOKEN }}
-      files: ./coverage.xml
-      flags: unittests
-      fail_ci_if_error: true
-      minimum_coverage: 80
-  
-  - name: Deploy Preview (if PR)
-    if: github.event_name == 'pull_request'
-    run: |
-      bash scripts/deploy.sh preview-${{ github.event.number }}
-  
-  - name: Deploy Production (if main merge)
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    run: bash scripts/deploy.sh production
-
-text
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+        node-version: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint
+        run: make lint
+      - name: Tests
+        run: make test
+      - name: Security Scan
+        run: bash scripts/security-scan.sh
+      - name: Coverage Report
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          flags: unittests
+          fail_ci_if_error: true
+          minimum_coverage: 80
+      - name: Deploy Preview (if PR)
+        if: github.event_name == 'pull_request'
+        run: bash scripts/deploy.sh preview-${{ github.event.number }}
+      - name: Deploy Production (if main merge)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: bash scripts/deploy.sh production
+```
 
 ---
 
@@ -543,7 +465,6 @@ Ctrl+C to interrupt
 Review loop_guard.py output
 Refine prompt (add line numbers + file paths)
 Retry with explicit MCP mapping
-text
 
 ### When Tests Fail >5 Retries
 
@@ -552,7 +473,6 @@ Agent escalates to GitHub issue (label: codex-blocked)
 Manual intervention required
 Fix uploaded to PR draft
 Agent continues after human approval
-text
 
 ### When Secrets Detected
 
@@ -561,7 +481,6 @@ Pre-push hook blocks commit
 Email security@zappro.site
 Revert commit, remove secret
 Retry
-text
 
 ---
 

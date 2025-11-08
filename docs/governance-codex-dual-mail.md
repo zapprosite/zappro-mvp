@@ -1,4 +1,4 @@
-[# Governance — Codex CLI Dual Email Account System
+# Governance — Codex CLI Dual Email Account System
 
 **Versão:** 1.0.0  
 **Data:** 2025-11-06  
@@ -31,20 +31,22 @@ Sistema de gerenciamento de **dois emails independentes** para Codex CLI, permit
 | **Sessions Codex** | `~/.codex/sessions/*.json` | Auth tokens salvos para auto-switch |
 
 ### 2.2 Fluxo de Autenticação
+
+```text
 cx "prompt"
-↓
+  ↓
 select_best_email()
-├─ Verifica bloqueios (is_blocked)
-├─ Alterna entre e-mails se um estiver bloqueado
-└─ Escolhe email com menor uso diário
-↓
+  ├─ Verifica bloqueios (is_blocked)
+  ├─ Alterna entre e-mails se um estiver bloqueado
+  └─ Escolhe email com menor uso diário
+  ↓
 switch_to_email()
-└─ Copia session .json → ~/.codex/auth.json
-↓
+  └─ Copia session .json → ~/.codex/auth.json
+  ↓
 codex executa com email ativo
-├─ Sucesso → incrementa contador
-└─ Limite → bloqueia por 5h, tenta outro email
-text
+  ├─ Sucesso → incrementa contador
+  └─ Limite → bloqueia por 5h, tenta outro email
+```
 
 ---
 
@@ -62,18 +64,27 @@ text
 
 ### 4.1 Comando Principal
 
-Sintaxe correta (obrigatório usar -- antes do prompt)
+Sintaxe correta (obrigatório usar `--` antes do prompt):
+
+```bash
 cx -- "Sua tarefa aqui"
-Exemplos
+```
+
+Exemplos:
+
+```bash
 cx -- "Adicionar campo status ao Task model"
 cx -- "Implementar paginação GET /tasks"
 cx -- "Refatorar frontend componentes"
-text
+```
 
 ### 4.2 Ver Status Anytime
 
+```bash
 cxs
-Output:
+```
+
+```text
 ═══════════════════════════════════════
 ZapPro Dual Account Status
 ═══════════════════════════════════════
@@ -84,7 +95,7 @@ Email 2 (contato@calirodrigues.com):
 Status: ✅ Disponível
 Tasks hoje: 43
 Total tasks hoje: 130
-text
+```
 
 ### 4.3 Comportamento Automático
 - **Email 1 atinge ~150 tasks** → Marcado como �� BLOQUEADO por 5h
@@ -102,12 +113,18 @@ text
 
 ### 5.2 Monitoramento
 
-Verificar contadores atuais
+Verificar contadores atuais:
+
+```bash
 cat ~/.zappro/dual-account-state.json | jq '.email1_tasks_today, .email2_tasks_today'
-Zerar para novo dia (manual)
+```
+
+Zerar para novo dia (manual):
+
+```bash
 jq '.email1_tasks_today=0 | .email2_tasks_today=0' ~/.zappro/dual-account-state.json > ~/.zappro/dual-account-state.json.tmp
 mv ~/.zappro/dual-account-state.json.tmp ~/.zappro/dual-account-state.json
-text
+```
 
 ---
 
@@ -116,26 +133,30 @@ text
 ### 6.1 Revalidar Sessions
 Caso o sistema relate "Session não encontrada", revalidar ambas contas:
 
+```bash
 mkdir -p ~/.codex/sessions
 codex logout
-codex login # Login Email 1
+codex login  # Login Email 1
 cp ~/.codex/auth.json ~/.codex/sessions/williamrodriguesrefrimix@gmail.com.json
 codex logout
-codex login # Login Email 2
+codex login  # Login Email 2
 cp ~/.codex/auth.json ~/.codex/sessions/contato@calirodrigues.com.json
-ls -lh ~/.codex/sessions/ # Verificar ambas presentes
-text
+ls -lh ~/.codex/sessions/  # Verificar ambas presentes
+```
 
 ### 6.2 Testar Script Syntax
 
+```bash
 bash -n ~/.zappro/codex-dual-account.sh
-text
+```
 
 ### 6.3 Limpar Estado (Restart)
 
+```bash
 rm ~/.zappro/dual-account-state.json ~/.codex/sessions/*.json
-Recriar inicial com Passo 1 dos docs
-text
+```
+
+Recriar inicial com Passo 1 dos docs.
 
 ---
 
@@ -208,15 +229,18 @@ text
 
 ## Apêndice A: Referência de Comandos
 
+```bash
+# Uso básico
+cx -- "tarefa"      # Executar task
+cxs                  # Ver status
 
-Uso básico
-cx -- "tarefa" # Executar task
-cxs # Ver status
-Manutenção
-source ~/.bashrc # Recarregar aliases
-bash -n ~/.zappro/codex-dual-account.sh # Validar script
-rm ~/.zappro/dual-account-state.json # Reset estado (avançado)
-Debug
+# Manutenção
+source ~/.bashrc                           # Recarregar aliases
+bash -n ~/.zappro/codex-dual-account.sh    # Validar script
+rm ~/.zappro/dual-account-state.json       # Reset estado (avançado)
+
+# Debug
 cat ~/.zappro/dual-account-state.json | jq .
 ls -lh ~/.codex/sessions/
-codex whoami]
+codex whoami
+```

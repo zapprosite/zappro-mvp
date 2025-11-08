@@ -196,16 +196,16 @@ git push origin feature/my-feature --force
 ## Release Process
 
 ### Version Numbering (Semantic Versioning)
-\`\`\`
+```text
 MAJOR.MINOR.PATCH
 1.2.3
 ↑ Breaking changes
   ↑ New features
     ↑ Bug fixes
-\`\`\`
+```
 
 ### Release Steps
-\`\`\`bash
+```bash
 # From main branch
 git checkout main
 git pull origin main
@@ -216,7 +216,7 @@ git push origin v1.2.3
 
 # GitHub auto-creates Release from tag
 # CD workflow deploys to production
-\`\`\`
+```
 
 ---
 
@@ -228,11 +228,11 @@ git push origin v1.2.3
 - If too big → break into sub-PRs
 
 ### Always Pull Before Push
-\`\`\`bash
+```bash
 git fetch origin
 git rebase origin/main  # or merge if you prefer
 git push origin feature/my-feature
-\`\`\`
+```
 
 ### Sync with Main Frequently
 ```bash

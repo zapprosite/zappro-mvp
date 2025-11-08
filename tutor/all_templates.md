@@ -1,45 +1,10 @@
-# AGENTS.md — Governança
-Papel: LLM Tutor Web...
-(reste do conteúdo conforme padrão discutido)
+# Templates consolidados
 
----
+> [!NOTE]
+> Estes templates foram consolidados no arquivo `tutor/TUTOR_MASTER_PROMPT.md`.
+> Use-o como referência única e atualizada.
 
-# WORKFLOW
-Branching: trunk + feature branches...
-(reste do conteúdo conforme padrão Tutor Web)
-
----
-
-# DECISION — Matriz Refactor vs Rewrite
-(reste do conteúdo)
-
----
-
-| Data       | Evento                   | Módulo     | Notas breves                  |
-(reste do conteúdo)
-
----
-
-Indicadores:
-(reste do conteúdo)
-
----
-
-version: v1
-(project contract conforme padrão)
-
----
-
-# Último ciclo Tutor LLM
-(reste do conteúdo)
-
----
-
-# Estado do projeto — incremental checkpoint
-(reste do conteúdo)
-
----
-
-[RESET]
-Leia tutor/* primeiro, depois docs/*
-(resumo do meta-prompt)
+- Governança (AGENTS): ver `docs/AGENTS.md`
+- Workflow (Git/PR): ver `docs/WORKFLOW.md`
+- Matriz DECISION: ver `docs/DECISION.md`
+- Checklists: ver `tutor/TUTOR_MASTER_PROMPT.md`

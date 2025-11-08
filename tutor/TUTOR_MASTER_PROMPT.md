@@ -194,14 +194,15 @@ Antes de refatorar, consulte tabela. Se score ≤12 = REFACTOR, ≥13 = REWRITE:
 
 ### O que roda em cada push
 
+```text
 PUSH → GitHub Actions:
-Lint (ruff, black, isort)
-Tests (pytest 26 tests, 80%+ coverage)
-Security Scan (bandit, npm audit, secret-scan)
-Coverage Report (codecov threshold 80%)
-Deploy Preview (se PR, preview-{PR}.zappro.site)
-Deploy Prod (se main merge + tag, app.zappro.site)
-text
+  - Lint (ruff, black, isort)
+  - Tests (pytest 26 tests, 80%+ coverage)
+  - Security Scan (bandit, npm audit, secret-scan)
+  - Coverage Report (codecov threshold 80%)
+  - Deploy Preview (se PR, preview-{PR}.zappro.site)
+  - Deploy Prod (se main merge + tag, app.zappro.site)
+```
 
 ### Se falhar
 - ❌ GitHub comment com erro
@@ -215,11 +216,12 @@ text
 
 ### Template Commit Message (Conventional)
 
+```text
 feat(scope): description (1 linha máx 72 chars)
-Bullet point 1
-Bullet point 2
-Refs #123
 
+- Bullet point 1
+- Bullet point 2
+Refs #123
 
 Examples:
 feat(auth): add OAuth2 login
@@ -227,53 +229,63 @@ fix(tasks): fix date range filter
 docs: refactor all .md files
 ci: add codecov integration
 refactor: async sqlalchemy in auth.py
-text
+```
 
 ### Template PR Description
 
-Description
+```markdown
+## Description
 Closes #123
 Brief description of what was done.
-Changes Made
-Feature A
-Feature B
-Testing
-Unit tests added
-Manual testing on localhost
-Checklist
-make lint passes
-make test passes
-docs updated
-No secrets in code
-MCPs Used
-filesystem (read/write src/...)
-git (commit, push)
-github (verify PR)
-shell (make lint, make test)
-text
+
+## Changes Made
+- Feature A
+- Feature B
+
+## Testing
+- Unit tests added
+- Manual testing on localhost
+
+## Checklist
+- [ ] make lint passes
+- [ ] make test passes
+- [ ] docs updated
+- [ ] No secrets in code
+
+## MCPs Used
+- filesystem (read/write src/...)
+- git (commit, push)
+- github (verify PR)
+- shell (make lint, make test)
+```
 
 ### Template Task for Codex CLI
 
+```text
 OBJECTIVE_TITLE
+
 Critical Fixes (se houver bugs bloqueantes)
 src/file.py:LINE - Erro específico (não vago)
+
 Features/Improvements
-Feature A com contexto real
-Feature B com exemplos
+- Feature A com contexto real
+- Feature B com exemplos
+
 Template Completo (sem placeholders)
-```python
-Código real, pronto para usar
-```
+[Código real, pronto para usar]
+
 Validation Steps
-make lint (0 errors)
-make test (26 tests pass)
-bash scripts/validate.sh
+- make lint (0 errors)
+- make test (26 tests pass)
+- bash scripts/validate.sh
+
 MCP Usage Priority
-filesystem: read/write src/...
-git: commit + push
-github: verify
+- filesystem: read/write src/...
+- git: commit + push
+- github: verify
+
 Execute atomically. Report final status.
-text
+```
 
 ---
 
@@ -285,29 +297,27 @@ Loop guard ativa: script para automaticamente
 GitHub issue criada com label "codex-blocked"
 Slack notifica @willrefrimix
 Await manual investigation
-text
 
 ### Se Testes Falham >5 Retries
 
 Agent escalate para issue (label "qa-blocked")
 Slack notifica
 Requer aprovação manual para continuar
-text
 
 ### Se Secret Encontrado
 
 Pre-push hook bloqueia
 Email security@zappro.site
 Revert commit, remover secret, retry
-text
 
 ### Se Merge Conflict
 
+```bash
 git fetch origin main
 git rebase origin/main
-Resolver conflitos manualmente
+# Resolver conflitos manualmente
 git push --force-with-lease
-text
+```
 
 ---
 
@@ -315,13 +325,14 @@ text
 
 Estados automáticos:
 
+```text
 New Issue → BACKLOG (auto add)
 Issue Assigned → IN PROGRESS (auto move)
 PR Opened & Linked → IN PROGRESS (auto move)
 PR Approved 2x → IN REVIEW (auto move)
 PR Merged → DONE (auto move)
 Stale 30 days → ARCHIVED (auto move)
-text
+```
 
 ---
 
