@@ -45,7 +45,7 @@ def create_task(db: Session, task: TaskCreate, owner_id: int) -> Optional[Task]:
     if not project:
         return None
 
-    db_task = Task(**task.dict())
+    db_task = Task(**task.model_dump())
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
@@ -59,7 +59,7 @@ def update_task(
     if not db_task:
         return None
 
-    for field, value in task_update.dict(exclude_unset=True).items():
+    for field, value in task_update.model_dump(exclude_unset=True).items():
         setattr(db_task, field, value)
 
     db.commit()
