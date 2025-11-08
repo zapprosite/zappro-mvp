@@ -265,9 +265,9 @@
           "id": "task-30",
           "title": "T1 FastAPI lifespan",
           "description": "refactor(api): migrate to FastAPI lifespan and add /healthz",
-          "done": false,
+          "done": true,
           "approved": false,
-          "completedDetails": ""
+          "completedDetails": "Implemented FastAPI lifespan context in src/main.py (asynccontextmanager) to initialize DB and log startup/shutdown with structured messages, and added GET /healthz returning {\"status\":\"ok\"}. Validation: `make lint && make test` (26 tests green). Branch `feature/codex-overnight`, commit 47b1fbcc73d2b74e9321ebb86e1795b13084220f pushed to origin. Attempted to open PR `refactor(api): migrate to FastAPI lifespan and add /healthz`, but GitHub API access is unavailable in this environment—please open manually via https://github.com/zapprosite/zappro-mvp/pull/new/feature/codex-overnight."
         },
         {
           "id": "task-31",
