@@ -1,320 +1,476 @@
-# PRD — ZapPro Plataforma Full‑Stack (LLM‑Safe)
-
-Este PRD é a única fonte de verdade do produto e guia times e LLMs para evolução segura e padronizada.
-
-***
-
-## 0. Guia de Início: Stack e Dependências
-
-- Linguagem: Python 3.11+
-- Framework: FastAPI 0.115+
-- Banco de dados: PostgreSQL 16
-- ORM/Migrations: SQLAlchemy 2.x + Alembic 1.13+
-- Testes: pytest 8.x, httpx, Playwright (frontend)
-- Lint/Format: ruff, black, isort
-- Empacotamento/Execução: Docker Compose para dev/local, Kubernetes/EKS produção
-
-**Frontend:**
-- Framework: Next.js 15, TypeScript 5+
-- Forms/UI: Shadcn/ui, TailwindCSS, Zustand/TanStack Query
-- Testes: Playwright
-- Lint: eslint, prettier
-
-**AI e Automações:**
-- LangChain 1.0, LangGraph 1.0+
-- Kestra (>=0.19), n8n (>=1.65)
-
-**Outros:**
-- CI/CD: GitHub Actions, FluxCD
-- Containerização: Docker, docker-compose
-- IaC: Pulumi/Terraform
-- Observabilidade: Sentry, Datadog, Posthog, LangSmith
-- Gerenciamento de segredos: Vault
-
-**Checklist Bootstrap:**
-- [ ] README.md atualizado stack rodando e comandos
-- [ ] docs/how-to-run.md com comandos concretos de exec/test/build
-- [ ] Makefile ou justfile (`fmt`, `lint`, `test`, `dev`, `run`)
-- [ ] src/ scaffold mínimo + health-check endpoint
-- [ ] Teste mínimo health/version
-- [ ] .gitignore, .editorconfig, AGENTS.md, .codex/policy.json
-
-***
-
-## 1. Visão Geral
-
-- Nome: ZapPro Plataforma Autônoma Construção Civil e HVAC-R
-- Contexto: PME de construção civil enfrentam alto desperdício, baixa digitalização e dificuldades de coordenação/automação operacional.
-- Objetivo: Reduzir custos, aumentar produtividade e automatizar decisões e execuções operacionais via workflows e assistentes inteligentes integrados.
-- Métricas de sucesso:
-   - MVP lançado em até 4 meses
-   - Ativação ≥ 100 clientes beta em 6 meses
-   - Redução de >30% custos operacionais dos clientes
-   - NPS ≥ 8 após onboarding
-   - SLA uptime >99,5%
-
-***
-
-## 2. Problema e Objetivos
-
-- Problema principal: Falta de automação, controle e integração digital nas rotinas centrais das obras, gerando retrabalho, atrasos e custos extras.
-- Objetivos mensuráveis:
-   - Gerenciar obras e equipes c/ fluxo unificado
-   - Orquestrar tarefas, materiais, documentos e comunicações end-to-end
-   - Prover IA assistiva (RAG+tool-calling) para dúvidas/decisões técnicas
-   - Implantar automação de notificações, pagamentos e orçamentos
-- Não‑objetivos (fora do escopo MVP):
-   - ERP próprio (apenas integrações)
-   - App mobile nativo (PWA, sim)
-   - Contabilidade/fiscal profunda
-
-***
-
-## 3. Público‑Alvo e Personas
-
-- Personas:
-    - Gestor de obra/engenheiro
-    - Mestre de obras/encarregado de campo
-    - Almoxarife/responsável por materiais
-    - Pequenos e médios empreiteiros
-    - Operador de equipe móvel
-- Cenários principais:
-    - Cadastro e acompanhamento de obras, controle de tarefas e equipes, baixa/lote de materiais, geração e acompanhamento de orçamentos, recebimento de alertas, consulta rápida a informações técnicas via IA.
-
-***
-
-## 4. Roadmap por Fases
-
-- F0 — Bootstrap: scaffold, ci, pipeline, health, ambiente dev rodando
-- F1 — MVP: login, projetos, equipe, materiais, tarefas/documentos, API básica, rotinas principais
-- F2 — Observabilidade e Qualidade: logs, métricas, testes, cov. inicial, alertas
-- F3 — Infra e Deploy: docker/k8s, migrations, ambientes, rollout seguro
-- F4 — Performance e Segurança: cache, CORS, rate-limit, headers, perf-budget, WCAG A11y
-- F5 — Escala e DX: filas/jobs, document. API, pipelines, DX de dev, automações user/LLM
-- F6 — Release/Manutenção: release notes, versionamento, backup, restore, SLOs
-
-***
-
-## 5. Requisitos Funcionais (User Stories)
-
-- [ ] Como gestor, quero cadastrar e editar obras/projetos para controlar status, responsáveis e prazos.
-- [ ] Como engenheiro, quero criar tarefas/checklists e atribuir à equipe e projetistas.
-- [ ] Como almoxarife, quero registrar entrada/saída/estoque de materiais em cada obra.
-- [ ] Como responsável, quero consultar documentos de projetos e receber notificações de alterações.
-- [ ] Como usuário, quero acessar via web/mobile (PWA) e receber alertas via e-mail/WhatsApp.
-- [ ] Como gestor, quero consultar dashboards de progresso físico/financeiro.
-- [ ] Como colaborador, quero autenticação segura (login JWT), MFA opcional.
-- [ ] Como stakeholder, quero consultar informações via agente IA conversacional.
-
-***
-
-## 6. Requisitos Não Funcionais
-
-- Confiabilidade: SLA 99,5% uptime/ano, MTTR < 1h
-- Segurança: JWT Auth, RBAC mínimo, LGPD, segredos via Vault, OWASP top-10 mitigado
-- Observabilidade: logs JSON, métricas HTTP/DB/IA, tracing requests críticos
-- Performance: p95 resp API < 300ms, dashboard < 2s
-- Escalabilidade: horizontal auto-scale K8s, cache Redis, bulk API/sync job
-- Compatibilidade: PWA, desktop + mobile browsers (Edge, Chrome, Safari, Firefox)
-- Acessibilidade (a11y): mínimo WCAG 2.1 AA, navegação por teclado, contraste adequado
-
-***
-
-## 7. Arquitetura Alvo
-
-- Frontend: Next.js 15 + TypeScript + Shadcn/ui + TailwindCSS
-- Backend: FastAPI (Python 3.11+), API REST (OpenAPI 3)
-- Banco: PostgreSQL 16, Alembic; Redis p/ cache/queue
-- Workflow/AI: Kestra + n8n (event-driven), LangChain/LangGraph p/ agentes
-- API: JWT; versionamento via `/api/v1/`
-- Armazenamento arquivos: S3 ou Cloud equivalente
-- Infra: Dev via Docker Compose, prod via K8s (EKS)
-- Messaging/Jobs: Celery + RabbitMQ
-- Diagrama alto nível: Projeto, tarefas, materiais, equipe e documentos conectados via API, AI/Workflows integrados por eventos e webhooks, observabilidade em todo stack
-
-***
-
-## 8. Modelo de Dados (resumido)
-
-- Usuário: { id, email, senha, nome, perfil }
-- Projeto: { id, nome, status, owner_id, ... }
-- Tarefa: { id, projeto_id, responsável_id, título, deadline, status }
-- Equipe: { projeto_id, user_id, role }
-- Material: { id, nome, projeto_id, estoque, fornecedor }
-- Documento: { id, projeto_id, tarefa_id, url, tipo }
-- Relacionamentos principais: Usuário 1:N Projeto; Projeto 1:N Tarefa/Material/Documento/Equipe
-- Índices: por owner, por status, FKs consistentes
-
-***
-
-## 9. Design de API
-
-- Convenção: snake_case para backend, camelCase para frontend (conversão automática)
-- Erros: `{ "error": { "code": ..., "message": ..., "details": ... } }`
-- Paginação padrão `?limit=&offset=`
-- Versionamento: `/api/v1/`
-- Exemplos:
-   - POST `/api/v1/auth/login`
-   - GET `/api/v1/projects`
-   - POST `/api/v1/projects`
-   - GET `/api/v1/projects/{id}/tasks`
-   - POST `/api/v1/materials`
-- Autorização no header `Authorization: Bearer <jwt>`
-- Docs automáticas (Swagger/ReDoc)
-
-***
-
-## 10. Frontend
-
-- Páginas: `/login`, `/dashboard`, `/projects`, `/projects/[id]`, `/tasks`, `/materials`, `/reports`
-- Estado: TanStack Query, Zustand (quando global), SWR mini cache
-- UI Kit: Shadcn/ui, ícones Lucide
-- i18n: pt‑BR (v1); campos preparados para easy-translate
-- A11y: contraste, alt, teclado e roles WAI-ARIA
-- SEO: title dinâmico, meta, manifest.json (PWA)
-
-***
-
-## 11. Segurança
-
-- Autenticação: JWT, refresh token, MFA opcional (TOTP/SMS e-mail)
-- Autorização: RBAC mínimo (admin, gestor, operador)
-- Proteção web: CSRF (apenas se suportar forms POST puros), XSS, CORS restritivo, rate-limit (per IP)
-- Gestão de segredos: .env local, Vault prod, nunca versionado
-- Auditoria: logs toda ação sensível e login/logout
-- Privacy/terms: Política LGPD/privacidade
-
-***
-
-## 12. Observabilidade e Operação
-
-- Logs: estruturados, correlacionados por request-id
-- Métricas: HTTP (reqs/s, latência, erro), banco, jobs, AI, uso API
-- Tracing: habilitado para RPC/AI/integrações sensíveis
-- Alertas: erros críticos, alta latência, falhas em jobs, uso CPU/disco cloud
-
-***
-
-## 13. Desenvolvimento e Ambientes
-
-- Dev: `make setup` → `make dev`, `.env.local`
-- Test: `make test` (pytest, playwright)
-- Lint/Format: `make lint`, `make fmt`
-- Ambientes: dev / staging / prod
-- Variáveis por ambiente (12‑factor, dotenv)
-- Flags de recurso para rollout seguro
-
-***
-
-## 14. CI/CD
-
-- CI: lint → test → build → policy‑check → criar artefato (docker/k8s)
-- CD: staging completo/automatizado, produção com aprovação humana
-- Migrações sempre antes do deploy app (safe-migrate Alembic)
-- Checks e scripts validados sempre antes do merge
-
-***
-
-## 15. Testes
-
-- Pirâmide: unitários > integração > E2E
-- Cobertura alvo: 80% backend, 70% frontend
-- Teste mínimo: health/version e contrato API ofertas
-- Front: Playwright com snapshot básico UI
-- Pre-commit hooks ativos para testes rápidos
-
-***
-
-## 16. Internacionalização e SEO
-
-- Idiomas: pt‑BR primário (v1)
-- SEO (web pública): titles, metatags, manifest, sitemap, robots.txt
-
-***
-
-## 17. Riscos e Mitigações
-
-- Risco: Falta de onboarding UX → Mitigação: user-test early + survey
-- Risco: LLM gerar resposta errada (tool misuse) → Mitigação: tool calling validada/testada + fallback manual/humano
-- Risco: Perda de dados acidental → Backups diários automatizados
-- Risco: Deploy com segredo exposto → CI bloqueia merge se segredos versionados
-
-***
-
-## 18. Critérios de Aceitação
-
-- Login, CRUD projeto/tarefa/material/doc funcionando
-- Health-check e logs no deploy
-- API documentada (/_docs)
-- Scripts bootstrap e CI verde ao commit
-- Coverage mínimo previsto atingido
-- Staging deployável com dados fake/seed
-- Validação manual user-flow base completa
-
-***
-
-## 19. Entregáveis por Fase
-
-- F0: `src/`, `tests/`, `docs/`, `README`, CI verde
-- F1: MVP funcional disponível
-- F2: SLOs, logs, métricas completas, erros capturados e dashboards básicos
-- F3–F6: Infra estável, escalável, recovery, DX evoluída, documentação e versionamento
-
-***
-
-## 20. Detalhamento das Fases (Checklists)
-
-### F0 — Bootstrap
-- [ ] Stack confirmada e README/docs OK
-- [ ] Scaffold src/ mínimo, health endpoint
-- [ ] Makefile/justfile/ci prontos
-- [ ] Pre-commit ativo
-- [ ] .gitignore, .editorconfig, AGENTS.md revisados
-
-### F1 — MVP
-- [ ] Modelos/CRUD de projeto, tarefa, material, usuário, doc
-- [ ] JWT auth, RBAC e refresh
-- [ ] Interface frontend funcional/login
-- [ ] Testes integração CRUD principais
-
-### F2 — Observabilidade/Qualidade
-- [ ] Logs estruturados, req-id correlacionado
-- [ ] Métricas HTTP/DB/AI/API
-- [ ] Tracing em integrações AI/workflows
-- [ ] Testes unit/cov ≥ 80%
-- [ ] Pre-commit lint/format/test ativo
-
-### F3 — Infra e Deploy
-- [ ] Docker Compose/k8s pronto e diarizado
-- [ ] Migrações seguras
-- [ ] Diff e rollback documentados
-- [ ] Variáveis ambiente seguras e policies de segredo
-
-### F4 — Segurança/Performance
-- [ ] CORS, rate-limit, hardening headers, WCAG AA, consultas com paginação/limite
-
-### F5 — Escala e DX
-- [ ] Job/queue prontos, doc API validada, flags experimento
-
-### F6 — Release/Manutenção
-- [ ] Versionamento, backup/restore simulados
-- [ ] SLOs validados e dívida técnica revisada
-
-## Appendix D: DevOps Standards Compliance
-
-### CI/CD Architecture
-- Pipeline: GitHub Actions com matrizes Python 3.11/3.12 e Node 20/22.
-- Cobertura: artifacts de cobertura publicados e integração com Codecov (limiar 80%).
-- Deploy: prévia automática em PR + promoção para produção após merge na `main`.
-- Notificações: Slack (`SLACK_WEBHOOK_URL`) e email via SMTP (`CI_SMTP_*`).
-
-### Agent Integration
-- `docs/AGENTS.md` define limites de operação de LLMs/agents.
-- Fluxo Codex CLI + MCP descrito em `docs/metodo-contrato-codex-cli-com-mcp.md`.
-- GitHub Projects automatiza o quadro Kanban e amarra issues/PRs ao roadmap.
-
-### Security Baselines
-- Zero segredos versionados; usar `.env.example` apenas como referência.
-- `scripts/secret-scan.sh` em pre-push e nos pipelines.
-- Monitoramento diário de dependências (`scripts/dependency-watch.sh`) e bloqueios de policy em PR.
-- Checks obrigatórios: lint, testes, segurança e Playwright antes do merge.
+# PRD.md — ZapPro MVP Product Requirements Document
+
+**Última atualização:** 7 Nov 2025  
+**Versão:** 2.0-multi-agent-automation  
+**Status:** Production Ready + Multi-Agent Orchestration  
+**Owner:** @willrefrimix, @jpmarcenaria
+
+---
+
+## Executive Summary
+
+[!NOTE]
+Este documento descreve o MVP do ZapPro (SaaS para construção civil) com arquitetura full‑stack moderna, automações multi‑agente e práticas DevOps sênior. Use este PRD como fonte única de verdade para escopo, metas e roadmap.
+
+**ZapPro MVP** é um SaaS de gestão de projetos em construção civil com:
+- ✅ Full-stack moderno (FastAPI + Next.js 15 + PostgreSQL)
+- ✅ Multi-Agent System (Codex + N8N + Kestra + Chatwoot)
+- ✅ Automação de workflows (event-driven + scheduled)
+- ✅ Customer support via LLM chatbot
+- ✅ Real-time dashboards (Kanban + ADM metrics)
+- ✅ DevOps Senior (CI/CD, security scanning, coverage gates)
+
+**Timeline:** MVP completo em 30 dias, production-ready em 60 dias
+
+---
+
+## Sumário
+
+- [1. Product Vision](#1-product-vision)
+- [2. Architecture & Tech Stack](#2-architecture--tech-stack)
+- [3. Core Features (MVP Phase 1)](#3-core-features-mvp-phase-1)
+- [4. Data Models (Tables & Schemas)](#4-data-models-tables--schemas)
+- [5. Kanban Workflow & Automation](#5-kanban-workflow--automation)
+- [6. Multi-Agent Orchestration Roadmap](#6-multi-agent-orchestration-roadmap)
+- [7. Deployment & Operations](#7-deployment--operations)
+- [8. Quality Metrics & Success Criteria](#8-quality-metrics--success-criteria)
+- [9. Known Constraints & Decisions](#9-known-constraints--decisions)
+- [10. Go-Live Checklist](#10-go-live-checklist)
+- [11. References & Documentation](#11-references--documentation)
+
+---
+
+## 1. Product Vision
+
+### Problem Statement
+- Construtoras brasileiras usam planilhas Excel para gestão de projetos
+- Falta rastreabilidade, comunicação integrada, e relatórios em tempo real
+- Espalhamento de informação em WhatsApp, email, e discos locais
+
+### Solution
+- Plataforma centralizada, cloud-native, com IA para automação
+- Integração com Kestra (scheduler) + N8N (workflow) + Chatwoot (support)
+- Agentes LLM autônomos para tarefas repetitivas
+- Real-time notifications (Slack, email, SMS)
+
+### Success Metrics
+- ✅ 80%+ test coverage (enforced)
+- ✅ 99.9% uptime (staging + production)
+- ✅ <2s page load time
+- ✅ 100% API endpoints documented + tested
+- ✅ Zero security vulnerabilities (OWASP Top 10)
+- ✅ Agentes autônomos completam 80%+ tasks sem intervenção manual
+
+---
+
+## 2. Architecture & Tech Stack
+
+### Backend
+
+Language: Python 3.11+
+Framework: FastAPI 0.115
+Database: PostgreSQL 16 + SQLAlchemy 2.x
+Async: asyncio + httpx
+Task Queue: Celery (optional, via Kestra)
+Caching: Redis 7.x
+Authentication: JWT (RS256) + OAuth2
+ORM/Migrations: SQLAlchemy + Alembic 1.13
+Testing: pytest 8.x + httpx + faker
+Linting: ruff, black, isort, mypy
+Security: bandit, pip-audit, trivy
+
+### Frontend
+
+Framework: Next.js 15 (App Router)
+Language: TypeScript 5
+UI Components: Shadcn/ui + TailwindCSS 3
+State: Zustand + TanStack Query 5
+Forms: React Hook Form + Zod validation
+Testing: Playwright 1.40+ (E2E), Vitest (unit)
+Linting: ESLint + Prettier + TypeScript strict
+Bundle: Next.js optimized (code splitting, ISR)
+
+### AI & Automation
+
+LLM Agent: Codex CLI (GPT-5 High Reasoning)
+Orchestration: Kestra 0.19 (event-driven jobs)
+Workflow Engine: N8N 1.65 (visual workflows)
+Chatbot: Chatwoot 3.x + LangChain 1.0
+Knowledge Base: Vector DB (Pinecone or Weaviate)
+
+### Infrastructure
+
+Containerization: Docker + docker-compose (dev)
+Orchestration: Kubernetes (K8s, EKS for prod)
+IaC: Pulumi or Terraform
+CI/CD: GitHub Actions + FluxCD
+Secrets: Vault (prod), GitHub Actions (CI)
+Monitoring: Sentry, Datadog, Posthog, LangSmith
+Logging: ELK Stack or Datadog
+
+---
+
+## 3. Core Features (MVP Phase 1)
+
+### 3.1 Project Management
+- [ ] Create/edit/delete projects
+- [ ] Team members + role-based access (RBAC)
+- [ ] Kanban board (drag-drop tasks)
+- [ ] Sprint planning + burndown charts
+- [ ] Comments + file attachments
+- [ ] Activity log (audit trail)
+
+### 3.2 Task Management
+- [ ] Create tasks with priority, assignee, due date
+- [ ] Task filters + search (full-text)
+- [ ] Recurring tasks (template-based)
+- [ ] Time tracking + estimates
+- [ ] Subtasks + dependencies
+- [ ] Notifications (Slack, email, in-app)
+
+### 3.3 Dashboard & Reporting
+- [ ] Real-time project dashboard (Kanban view)
+- [ ] Admin metrics (burndown, cycle time, agent performance)
+- [ ] Custom reports (PDF export)
+- [ ] Data visualization (charts, graphs)
+
+### 3.4 Integrations
+- [ ] Slack notifications (new tasks, updates, mentions)
+- [ ] GitHub sync (PRs linked to tasks)
+- [ ] Webhook support (custom integrations)
+- [ ] N8N workflows (custom automation)
+- [ ] Kestra schedules (daily reports, backups)
+
+### 3.5 LLM-Powered Automation
+- [ ] AI task generation from descriptions
+- [ ] Auto-categorization (priority, sprint)
+- [ ] Chatwoot customer support chatbot
+- [ ] Smart notifications (NLP-based)
+- [ ] Anomaly detection (missed deadlines, overload)
+
+### 3.6 Security & Compliance
+- [ ] Data encryption (at rest + in transit)
+- [ ] MFA + SAML/SSO (enterprise)
+- [ ] GDPR/LGPD compliance (data export, deletion)
+- [ ] Audit logs (all user actions)
+- [ ] Rate limiting + DDoS protection
+
+---
+
+## 4. Data Models (Tables & Schemas)
+
+### Core Tables
+
+```sql
+-- Users & Auth
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  email VARCHAR UNIQUE NOT NULL,
+  password_hash VARCHAR NOT NULL,
+  full_name VARCHAR,
+  role ENUM ('admin', 'manager', 'member'),
+  mfa_enabled BOOLEAN DEFAULT false,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
+
+-- Projects
+CREATE TABLE projects (
+  id UUID PRIMARY KEY,
+  name VARCHAR NOT NULL,
+  description TEXT,
+  owner_id UUID REFERENCES users(id),
+  status ENUM ('active', 'archived') DEFAULT 'active',
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
+
+-- Tasks
+CREATE TABLE tasks (
+  id UUID PRIMARY KEY,
+  project_id UUID REFERENCES projects(id),
+  title VARCHAR NOT NULL,
+  description TEXT,
+  priority ENUM ('low', 'medium', 'high', 'critical'),
+  status ENUM ('backlog', 'todo', 'in_progress', 'review', 'done'),
+  assignee_id UUID REFERENCES users(id),
+  due_date DATE,
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
+
+-- Sprints
+CREATE TABLE sprints (
+  id UUID PRIMARY KEY,
+  project_id UUID REFERENCES projects(id),
+  name VARCHAR,
+  start_date DATE,
+  end_date DATE,
+  status ENUM ('planning', 'active', 'closed'),
+  created_at TIMESTAMP
+);
+
+-- Agent Logs (for monitoring)
+CREATE TABLE agent_logs (
+  id UUID PRIMARY KEY,
+  agent_type VARCHAR ('code', 'qa', 'devops', 'docs'),
+  task_description TEXT,
+  status VARCHAR ('pending', 'running', 'success', 'failed'),
+  result TEXT,
+  error_message TEXT,
+  started_at TIMESTAMP,
+  ended_at TIMESTAMP,
+  created_at TIMESTAMP
+);
+
+-- Webhooks (for N8N/Kestra)
+CREATE TABLE webhooks (
+  id UUID PRIMARY KEY,
+  event_type VARCHAR,
+  url VARCHAR NOT NULL,
+  active BOOLEAN DEFAULT true,
+  created_at TIMESTAMP,
+  last_triggered TIMESTAMP
+);
+
+-- Audit Trail
+CREATE TABLE audit_logs (
+  id UUID PRIMARY KEY,
+  user_id UUID REFERENCES users(id),
+  action VARCHAR,
+  resource_type VARCHAR,
+  resource_id UUID,
+  changes JSONB,
+  created_at TIMESTAMP
+);
+```
+
+### Kanban State Machine
+
+```text
+Task States:
+BACKLOG → TODO → IN_PROGRESS → REVIEW → DONE
+
+Legendas auxiliares:
+Auto Generated | Assigned | Working | Blocked | Archive
+```
+
+### Admin Dashboard Metrics Table
+
+| Metric | Formula | Updated | Target |
+|--------|---------|---------|--------|
+| **Backlog Size** | COUNT(tasks WHERE status=BACKLOG) | Real-time | <50 |
+| **Cycle Time (days)** | AVG(done_date - created_date) | Daily | <7 |
+| **Agent Success Rate** | COUNT(SUCCESS) / COUNT(ALL) | Real-time | >95% |
+| **Coverage** | Test lines / Total lines | CI | >80% |
+| **Uptime** | (24h - downtime) / 24h | Hourly | 99.9% |
+| **API Response Time** | AVG(response_time) | Real-time | <200ms |
+
+---
+
+## 5. Kanban Workflow & Automation
+
+### Kanban States (GitHub Projects)
+
+```text
+BACKLOG (New issues)
+↓ [Agent auto-assigns if > 50 items]
+IN PROGRESS (Working)
+↓ [Auto-notify Slack when assigned]
+IN REVIEW (Waiting for approval)
+↓ [Auto-request reviewers, assign to 2 reviewers]
+DONE (Merged & deployed)
+↓ [Auto-archive after 30 days]
+ARCHIVED
+```
+
+### Automation Rules
+
+```text
+Rules:
+New issue → Add to Backlog (auto)
+Issue assigned → Move to In Progress (auto)
+PR opened → Auto-assign reviewers (by path)
+PR approved 2x → Ready for merge (auto)
+PR merged → Move to Done (auto)
+Merged & deployed → Notify Slack (webhook)
+Stale 30 days → Move to Archived (auto)
+Agent task success → Add ✅ label (auto)
+Agent task failed → Add ❌ label + escalate (auto)
+```
+
+---
+
+## 6. Multi-Agent Orchestration Roadmap
+
+### Phase 1 (Week 1-2): Single Agent
+- ✅ Codex CLI (GPT-5) reads code + commits atomically
+- ✅ Loop guard + context validation
+- ✅ Testes + lint gates
+
+### Phase 2 (Week 2-3): Sub-Agents
+- [ ] Code Agent (features, fixes)
+- [ ] QA Agent (tests, coverage)
+- [ ] Docs Agent (documentation)
+- [ ] DevOps Agent (infra, secrets, monitoring)
+
+### Phase 3 (Week 3-4): External Integrations
+- [ ] N8N workflows (webhook-triggered)
+- [ ] Kestra schedules (event-driven jobs)
+- [ ] Chatwoot bot (customer support)
+- [ ] Slack integration (notifications)
+
+### Phase 4+ (After MVP): Advanced
+- [ ] Knowledge base (vector DB + RAG)
+- [ ] Multi-language support
+- [ ] Custom MCPs (construction domain)
+- [ ] Advanced analytics (Posthog, LangSmith)
+
+---
+
+## 7. Deployment & Operations
+
+### Environment Stages
+
+| Stage | URL | Frequency | Approval |
+|-------|-----|-----------|----------|
+| **Development** | localhost:8000 | Every commit | Auto |
+| **Staging** | staging.zappro.site | Every main push | Auto |
+| **Preview** | preview-{PR}.zappro.site | Every PR | Auto |
+| **Production** | app.zappro.site | Manual (via release tag) | 2 reviewers |
+
+### CI/CD Pipeline
+
+```text
+PUSH → GitHub Actions:
+Lint (ruff, black, isort, eslint)
+Tests (pytest, vitest, playwright)
+Security Scan (bandit, npm audit, secret-scan)
+Coverage Report (codecov, >80% threshold)
+Deploy Preview (if PR)
+Deploy Production (if main + tag release)
+```
+
+### Monitoring & Alerting
+
+```text
+Metrics:
+API response time (p95, p99)
+Error rate (5xx, 4xx)
+Database query time
+Agent success rate
+Uptime (99.9% SLA)
+
+Alerts:
+Slack notification on deploy
+Email on critical errors
+PagerDuty for on-call (production)
+GitHub issue for low-severity bugs
+```
+
+### Data Model Relationships (overview)
+
+```text
+users 1 ─── * projects
+projects 1 ─── * tasks
+users 1 ─── * tasks (assignee)
+projects 1 ─── * sprints
+```
+
+---
+
+## 8. Quality Metrics & Success Criteria
+
+### Code Quality
+- [ ] Test coverage ≥80% (enforced by CI)
+- [ ] Type hints for all functions (Python)
+- [ ] TypeScript strict mode (Frontend)
+- [ ] No HIGH/CRITICAL security vulnerabilities
+- [ ] Zero secrets versionado
+- [ ] Code review: 2 min reviewers, <24h response time
+
+### Performance
+- [ ] Page load time <2s (lighthouse score >90)
+- [ ] API response time <200ms (p95)
+- [ ] Database queries <100ms (no N+1 queries)
+- [ ] Bundle size <500KB (gzipped)
+
+### Reliability
+- [ ] 99.9% uptime (staging + production)
+- [ ] 0 unplanned downtime (target)
+- [ ] Automated rollback on deploy failure
+- [ ] Backup + restore tested weekly
+
+### Agent Performance
+- [ ] ≥95% task success rate (Codex)
+- [ ] <5% escalation rate (manual intervention)
+- [ ] <5 min resolution time (QA agent)
+- [ ] ≤3 loop detections per week
+
+---
+
+## 9. Known Constraints & Decisions
+
+### Technical Debt (from DECISION.md)
+
+| Module | Decision | Timeline |
+|--------|----------|----------|
+| src/utils/auth.py | REWRITE (async) | Week 2 |
+| src/models/__init__.py | REWRITE (Pydantic V2) | Week 2 |
+| src/main.py | REFACTOR (FastAPI lifespan) | Week 1 |
+| frontend/api-layer | REWRITE (axios + error handling) | Week 3 |
+| docker-compose.yml | REFACTOR (healthchecks) | Week 1 |
+
+### Known Issues
+- [ ] WSL2 Docker daemon needs manual start (not auto)
+- [ ] N8N API rate limits (need queue backoff)
+- [ ] Kestra schedule timezone handling (UTC only for now)
+- [ ] Chatwoot escalation UX needs polish
+
+---
+
+## 10. Go-Live Checklist
+
+### Pre-Production (Week 4)
+- [ ] All features implemented + tested
+- [ ] Security audit completed
+- [ ] Performance optimized (<2s load time)
+- [ ] Monitoring + alerting configured
+- [ ] Support runbook written
+- [ ] Data migration tested
+- [ ] Disaster recovery plan documented
+
+### Production Deployment
+- [ ] Blue-green deployment setup
+- [ ] DNS failover configured
+- [ ] SSL certificates renewed
+- [ ] Database backups automated
+- [ ] On-call rotation setup
+- [ ] Customer communication ready
+
+### Post-Launch
+- [ ] Monitor error rates (target: <0.1%)
+- [ ] Track agent performance
+- [ ] Gather user feedback (Posthog events)
+- [ ] Plan next features (roadmap)
+
+---
+
+## 11. References & Documentation
+
+- **docs/AGENTS.md** — Agent rules + orchestration
+- **docs/SECURITY.md** — Security policies
+- **docs/WORKFLOW.md** — Git + PR process
+- **docs/DECISION.md** — Refactor vs rewrite matrix
+- **README.md** — Quick start guide
+- **docs/how-to-run.md** — Full setup instructions
+- **scripts/validate.sh** — Validation suite
+- **bin/codex.sh** — Codex CLI wrapper
+- **tutor/prompt.md** — LLM context template
+- **tutor/progress.state.md** — Sprint status
+
+---
+
+**PRD v2.0 Complete: Multi-Agent + Full Automation Ready**
+
+**Next Sprint:** Week 1 focus on Phase 1 refactors (auth async, main lifespan, docker healthchecks)
