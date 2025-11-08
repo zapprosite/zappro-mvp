@@ -72,3 +72,4 @@ frontend/package-lock.json
 TASK_MANAGER.json
 # Task management files
 TASK_MANAGER*.json
+${TASK_MANAGER_FILE_PATH}
