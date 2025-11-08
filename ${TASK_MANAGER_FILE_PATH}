@@ -255,6 +255,78 @@
         }
       ],
       "completed": false
+    },
+    {
+      "requestId": "req-4",
+      "originalRequest": "overnight-queue-2025-11-08: executar tarefas T1..T8 sequencialmente usando MCP task_manager como fila, com validações e PRs individuais.",
+      "splitDetails": "overnight-queue-2025-11-08: executar tarefas T1..T8 sequencialmente usando MCP task_manager como fila, com validações e PRs individuais.",
+      "tasks": [
+        {
+          "id": "task-30",
+          "title": "T1 FastAPI lifespan",
+          "description": "refactor(api): migrate to FastAPI lifespan and add /healthz",
+          "done": false,
+          "approved": false,
+          "completedDetails": ""
+        },
+        {
+          "id": "task-31",
+          "title": "T2 Auth async",
+          "description": "fix(auth): rewrite JWT utils async + tests",
+          "done": false,
+          "approved": false,
+          "completedDetails": ""
+        },
+        {
+          "id": "task-32",
+          "title": "T3 Pydantic v2",
+          "description": "refactor(models): migrate to Pydantic v2",
+          "done": false,
+          "approved": false,
+          "completedDetails": ""
+        },
+        {
+          "id": "task-33",
+          "title": "T4 Docker healthchecks",
+          "description": "ci(docker): add healthchecks and deps order",
+          "done": false,
+          "approved": false,
+          "completedDetails": ""
+        },
+        {
+          "id": "task-34",
+          "title": "T5 CI hardening",
+          "description": "ci(workflows): enable codecov and enforce secret-scan",
+          "done": false,
+          "approved": false,
+          "completedDetails": ""
+        },
+        {
+          "id": "task-35",
+          "title": "T6 Frontend bootstrap",
+          "description": "feat(web): bootstrap Next.js 15 home with projects list",
+          "done": false,
+          "approved": false,
+          "completedDetails": ""
+        },
+        {
+          "id": "task-36",
+          "title": "T7 E2E smoke",
+          "description": "test(e2e): add smoke test for home and healthz",
+          "done": false,
+          "approved": false,
+          "completedDetails": ""
+        },
+        {
+          "id": "task-37",
+          "title": "T8 API docs",
+          "description": "docs(api): add api-endpoints.md",
+          "done": false,
+          "approved": false,
+          "completedDetails": ""
+        }
+      ],
+      "completed": false
     }
   ]
 }
