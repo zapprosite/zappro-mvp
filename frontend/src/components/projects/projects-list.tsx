@@ -23,7 +23,7 @@ export default function ProjectsList() {
       <Card>
         <CardContent className="p-6 text-center">
           <p className="text-muted-foreground">
-            Faça login para visualizar e gerenciar seus projetos.
+            Sign in to review and manage your projects.
           </p>
         </CardContent>
       </Card>
@@ -69,15 +69,17 @@ export default function ProjectsList() {
   }
 
   return (
-    <section className="space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Meus Projetos</h2>
+          <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
+            Active portfolio
+          </p>
           <p className="text-sm text-muted-foreground">
-            Cadastre, edite e acompanhe seus projetos ativos.
+            Capture new work, update status, and export coverage insights.
           </p>
         </div>
-        <Button onClick={handleNewProject}>Novo Projeto</Button>
+        <Button onClick={handleNewProject}>New project</Button>
       </div>
 
       {isLoading && <p>Carregando projetos...</p>}
