@@ -6,6 +6,8 @@ COPY frontend/package.json frontend/package-lock.json ./
 
 RUN npm install --legacy-peer-deps
 
+RUN apk add --no-cache curl
+
 COPY frontend ./
 
 EXPOSE 3000
