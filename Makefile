@@ -60,5 +60,11 @@ restore:
 	@if [ -z "$(ARCHIVE)" ]; then echo "usage: make restore ARCHIVE=backups/<file>.tar.gz"; exit 1; fi
 	bash scripts/restore.sh "$(ARCHIVE)"
 
+test-e2e:
+	npx kill-port 8000 3000 || true
+	bash scripts/trae_preview.sh || true
+	npm --prefix frontend run test:e2e
+	npx kill-port 8000 3000 || true
+
 playwright-audit:
 	cd frontend && npx playwright test

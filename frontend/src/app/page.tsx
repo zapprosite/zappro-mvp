@@ -37,13 +37,19 @@ export default function Home() {
 
         <section
           aria-label="Projects"
+          data-testid="projects-list"
           className="space-y-6 rounded-3xl bg-white p-8 shadow-xl text-slate-900"
         >
           <div className="flex flex-col gap-2">
             <p className="text-sm uppercase tracking-[0.3em] text-slate-500">
               Live board
             </p>
-            <h2 className="text-3xl font-bold">Projects</h2>
+            <h1
+              data-testid="projects-heading"
+              className="text-3xl font-bold"
+            >
+              Projects
+            </h1>
             <p className="text-base text-slate-600">
               Track open efforts, launch plan stages, and keep your delivery
               pipeline synchronized with the FastAPI backend.

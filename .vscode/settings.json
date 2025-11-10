@@ -1,19 +1,35 @@
 {
-  // Configuração de terminal para abrir WSL por padrão no Windows
   "terminal.integrated.defaultProfile.windows": "WSL: Ubuntu-24.04",
   "terminal.integrated.profiles.windows": {
     "WSL: Ubuntu-24.04": {
       "path": "C:/Windows/System32/wsl.exe",
-      "args": ["-d", "Ubuntu-24.04"],
+      "args": [
+        "-d",
+        "Ubuntu-24.04"
+      ],
       "overrideName": true
     }
   },
-  // Shell de automação (tarefas/integrations) também em WSL
   "terminal.integrated.automationProfile": {
     "windows": "WSL: Ubuntu-24.04"
   },
-  // Habilitar integração do shell no terminal
   "terminal.integrated.shellIntegration.enabled": true,
-  // Melhor compatibilidade com ferramentas Linux
-  "terminal.integrated.allowChords": true
+  "terminal.integrated.allowChords": true,
+  "terminal.integrated.automationProfile.windows": "WSL: Ubuntu-24.04",
+  "remote.WSL.useShellEnvironment": true,
+  "remote.WSL.fileWatcher.polling": false,
+  "remote.WSL.fileWatcher.pollingInterval": 1000,
+  "files.eol": "\n",
+  "files.encoding": "utf8",
+  "git.path": "/usr/bin/git",
+  "editor.formatOnSave": true,
+  "files.watcherExclude": {
+    "/node_modules": true,
+    "/.git": true,
+    "/venv": true,
+    "/build": true,
+    "/dist": true,
+    "/.pytest_cache": true,
+    "**/pycache": true
+  }
 }

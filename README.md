@@ -174,26 +174,28 @@ bash scripts/policy-check.sh      # Verifica compliance de policies
 
 ## Documentação Técnica
 
-### Documentação Completa
-- **[docs/AGENTS.md](./docs/AGENTS.md)** — Agent Configuration para Codex CLI, CICD Rules, Security
-- **[docs/SECURITY.md](./docs/SECURITY.md)** — Security policy, vulnerability reporting, compliance
-- **[docs/WORKFLOW.md](./docs/WORKFLOW.md)** — Git workflow, branching, PR process
-- **[docs/DECISION.md](./docs/DECISION.md)** — Matriz de decisão (Refactor vs Rewrite)
-- **[docs/LOG.md](./docs/LOG.md)** — Changelog e histórico de commits
-- **[tutor/prompt.md](./tutor/prompt.md)** — Prompt de contexto para LLM tutors
+
+### Documentação Técnica
+- **[docs/CODEX_RUNBOOK.md](./docs/CODEX_RUNBOOK.md)** — Runbook canônico com tarefas T1..T8 e políticas atuais
+- **[docs/INDEX.md](./docs/INDEX.md)** — Índice dos documentos ativos, mapas de dependência e apontamentos para o histórico
+- **[docs/api-endpoints.md](./docs/api-endpoints.md)** — Catálogo REST completo com exemplos de payload
+- **[docs/WORKFLOW.md](./docs/WORKFLOW.md)** — Sequência oficial para planejar, executar e validar entregas
+- **[docs/SECURITY.md](./docs/SECURITY.md)** — Políticas de segurança e checklists de validação
+- **[tutor/TUTOR_MASTER_PROMPT.md](./tutor/TUTOR_MASTER_PROMPT.md)** — Prompt mestre com métricas, regras e matrizes de decisão
+- **[tutor/prompt.md](./tutor/prompt.md)** — Prompt de contexto leve para sessões ad-hoc
 - **[tutor/progress.state.md](./tutor/progress.state.md)** — Status de progresso das features
+> Arquivos históricos foram movidos para `docs/_archive/**`; consulte `docs/INDEX.md` para o inventário completo.
 
 ### Guias de Operação
-- **[docs/how-to-run.md](./docs/how-to-run.md)** — Como rodar localmente
-- **[docs/metodo-contrato-codex-cli-com-mcp.md](./docs/metodo-contrato-codex-cli-com-mcp.md)** — Contrato para usar Codex CLI com MCP
-
+- Consulte `docs/CODEX_RUNBOOK.md` e `docs/INDEX.md` para o fluxo completo (setup local, validações e políticas).
+- Guia rápido de operação diária e rodadas de testes em `docs/api-endpoints.md`.
 ---
 
 ## DevOps Standards Compliance
 
 ### Governança Anti-Alucinação
 ✅ **Loop Guard ativo:** Detecta repetições via \`scripts/loop_guard.py\`
-✅ **Context sempre lido:** \`docs/AGENTS.md\`, \`tutor/\` loaded antes de qualquer tarefa
+✅ **Context sempre lido:** \`docs/CODEX_RUNBOOK.md\`, \`docs/INDEX.md\`, \`tutor/\` carregados antes de qualquer tarefa
 ✅ **Commits rastreáveis:** Conventional messages (feat:, fix:, docs:, ci:)
 ✅ **Zero secrets versionado:** \`.env.example\` only, secrets em GitHub Actions
 

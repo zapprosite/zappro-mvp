@@ -16,10 +16,10 @@
 
 **Deliverables:**
 - ✅ README.md (com badges + quick start)
-- ✅ docs/AGENTS.md (multi-agent + webhooks)
-- ✅ docs/SECURITY.md (OWASP + LGPD)
-- ✅ docs/WORKFLOW.md (Git workflow)
-- ✅ docs/DECISION.md (Matriz refactor/rewrite)
+- ✅ docs/CODEX_RUNBOOK.md (multi-agent + runbook central)
+- ✅ docs/CODEX_RUNBOOK.md (runbook canônico e tarefas T1..T8)
+- ✅ docs/api-endpoints.md (catálogo REST)
+- ✅ docs/INDEX.md (índice de documentos ativos)
 - ✅ PRD.md v2.0 (Kanban + Admin + N8N/Kestra)
 - ✅ tutor/TUTOR_MASTER_PROMPT.md (contrato permanente)
 

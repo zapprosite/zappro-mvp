@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from functools import lru_cache
 from typing import List
 
@@ -23,14 +24,44 @@ def _parse_sequence(value: List[str] | str) -> List[str]:
         if candidate.startswith("["):
             try:
                 loaded = json.loads(candidate)
-            except json.JSONDecodeError as exc:  # pragma: no cover - logged upstream
-                raise ValueError(f"Unable to parse JSON sequence: {candidate}") from exc
+            except json.JSONDecodeError:
+                trimmed = candidate.strip("[]")
+                return [part.strip() for part in trimmed.split(",") if part.strip()]
             if isinstance(loaded, list):
                 return [str(item).strip() for item in loaded if str(item).strip()]
             raise ValueError("Expected JSON array for sequence value.")
         return [part.strip() for part in candidate.split(",") if part.strip()]
 
     raise TypeError("Expected list or string value")
+
+
+def _normalize_env_sequence(key: str) -> None:
+    """Ensure list-like env vars are valid JSON arrays."""
+    raw = os.environ.get(key)
+    if not raw:
+        return
+    candidate = raw.strip()
+    if not candidate:
+        return
+    try:
+        json.loads(candidate)
+        return
+    except json.JSONDecodeError:
+        pass
+    trimmed = candidate
+    if candidate.startswith("[") and candidate.endswith("]"):
+        trimmed = candidate[1:-1]
+    items = [part.strip() for part in trimmed.split(",") if part.strip()]
+    os.environ[key] = json.dumps(items)
+
+
+for env_key in (
+    "ZAPPRO_CORS__ALLOW_ORIGINS",
+    "ZAPPRO_CORS__ALLOW_METHODS",
+    "ZAPPRO_CORS__ALLOW_HEADERS",
+    "ZAPPRO_CORS__EXPOSE_HEADERS",
+):
+    _normalize_env_sequence(env_key)
 
 
 class CorsSettings(BaseModel):

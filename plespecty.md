@@ -93,7 +93,7 @@ Link: [`README.md`](README.md)
 - Logs indicam segurança ok, CVE conhecido em `starlette` pendente de correção upstream.
 - Funcionalidades de Fase 1 (autenticação/CRUDs) ainda não implementadas.
 
-Links: [`docker-compose.yml`](docker-compose.yml), [`src/main.py`](src/main.py), [`frontend/middleware.ts`](frontend/middleware.ts), [`docs/how-to-run.md`](docs/how-to-run.md), [`security.log`](security.log), [`audit.log`](audit.log)
+Links: [`docker-compose.yml`](docker-compose.yml), [`src/main.py`](src/main.py), [`frontend/middleware.ts`](frontend/middleware.ts), [`docs/CODEX_RUNBOOK.md`](docs/CODEX_RUNBOOK.md), [`docs/api-endpoints.md`](docs/api-endpoints.md), [`security.log`](security.log), [`audit.log`](audit.log)
 
 ---
 
@@ -238,7 +238,8 @@ ZAPPRO_CORS__allow_origins=http://localhost:3000,http://localhost:3001,http://lo
 - [`src/main.py`](src/main.py)
 - [`src/config.py`](src/config.py)
 - [`frontend/middleware.ts`](frontend/middleware.ts)
-- [`docs/how-to-run.md`](docs/how-to-run.md)
+- [`docs/CODEX_RUNBOOK.md`](docs/CODEX_RUNBOOK.md)
+- [`docs/api-endpoints.md`](docs/api-endpoints.md)
 - [`AGENTS.md`](AGENTS.md) • [`PRD.md`](PRD.md) • [`README.md`](README.md)
 - Logs: [`security.log`](security.log), [`audit.log`](audit.log)
 

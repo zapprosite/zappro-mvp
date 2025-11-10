@@ -3,12 +3,12 @@
 Objetivo: executar Codex CLI (GPT-5, reasoning high) com MCPs, sem alucinação/loops, rumo ao deploy rápido.
 
 ## Guardrails
-1. Ler: PRD.md, docs/AGENTS.md, docs/WORKFLOW.md, tutor/TUTOR_MASTER_PROMPT.md.
+1. Ler: PRD.md, docs/INDEX.md, tutor/TUTOR_MASTER_PROMPT.md.
 2. Sem placeholders.
 3. Validar antes de commit: `make lint && make test`.
 4. 1 mudança lógica = 1 commit = 1 PR.
 5. Sem segredos no código.
-6. Travou >30min → parar, `git reset --hard HEAD`, registrar em `docs/LOG.md`, seguir próxima.
+6. Travou >30min → parar, `git reset --hard HEAD`, registrar em `docs/_archive/LOG.md`, seguir próxima.
 
 ## MCPs
 github, git, filesystem, shell, task_manager, playwright, context7, brave_search.
@@ -69,4 +69,4 @@ tmux send-keys -t overnight 'codex -m gpt-5 -c model.reasoning_effort=high --ful
 # observar: tmux attach -t overnight
 
 ## Se travar
-Parar → `git reset --hard HEAD` → logar em `docs/LOG.md` → próxima tarefa.
+Parar → `git reset --hard HEAD` → logar em `docs/_archive/LOG.md` → próxima tarefa.
