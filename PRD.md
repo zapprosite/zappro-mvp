@@ -411,7 +411,7 @@ projects 1 ─── * sprints
 
 ## 9. Known Constraints & Decisions
 
-### Technical Debt (from DECISION.md)
+### Technical Debt (from docs/_archive/DECISION.md)
 
 | Module | Decision | Timeline |
 |--------|----------|----------|
@@ -458,14 +458,15 @@ projects 1 ─── * sprints
 
 ## 11. References & Documentation
 
-- **docs/AGENTS.md** — Agent rules + orchestration
-- **docs/SECURITY.md** — Security policies
-- **docs/WORKFLOW.md** — Git + PR process
-- **docs/DECISION.md** — Refactor vs rewrite matrix
+- **docs/CODEX_RUNBOOK.md** — Runbook canônico (políticas, T1..T8, processos)
+- **docs/api-endpoints.md** — Catálogo REST com exemplos e envelopes
+- **docs/INDEX.md** — Índice de documentos ativos e mapa de dependências
+- **docs/WORKFLOW.md** — Sequência operacional para planejamento, execução e validação
+- **docs/SECURITY.md** — Políticas de segurança e checklists de validação
 - **README.md** — Quick start guide
-- **docs/how-to-run.md** — Full setup instructions
 - **scripts/validate.sh** — Validation suite
 - **bin/codex.sh** — Codex CLI wrapper
+- **tutor/TUTOR_MASTER_PROMPT.md** — Prompt mestre com regras, matrizes e checkpoints
 - **tutor/prompt.md** — LLM context template
 - **tutor/progress.state.md** — Sprint status
 

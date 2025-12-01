@@ -8,7 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test --reporter=line",
+    "test:e2e:ci": "CI=1 playwright test --reporter=line",
+    "report:open": "playwright show-report"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",

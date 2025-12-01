@@ -49,6 +49,13 @@ jobs:
             --cov=src --cov-report=xml --cov-report=term-missing \
             --junitxml=reports/backend-tests-${{ matrix.python-version }}.xml
           mv coverage.xml coverage-python-${{ matrix.python-version }}.xml
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.12'
+        uses: codecov/codecov-action@v3
+        with:
+          files: coverage-python-${{ matrix.python-version }}.xml
+          flags: backend
+          fail_ci_if_error: true
       - name: Upload backend artifacts
         if: success() || failure()
         uses: actions/upload-artifact@v4
@@ -122,6 +129,8 @@ jobs:
           pip install -r requirements.txt
       - name: Run security scan
         run: make security
+      - name: Secret scan
+        run: bash scripts/secret-scan.sh
       - name: Upload security logs
         if: success() || failure()
         uses: actions/upload-artifact@v4

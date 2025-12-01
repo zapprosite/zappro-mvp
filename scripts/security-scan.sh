@@ -29,7 +29,12 @@ log "running pip-audit vulnerability scan"
 pip-audit || log "pip-audit reported vulnerable dependencies"
 
 log "checking repository for potential secrets"
-bash "$ROOT_DIR/scripts/secret-scan.sh" || log "secret scan reported potential hits"
+if bash "$ROOT_DIR/scripts/secret-scan.sh"; then
+  log "secret scan passed"
+else
+  log "secret scan reported potential hits"
+  exit 1
+fi
 
 if command -v trivy >/dev/null 2>&1; then
   log "running trivy filesystem scan"

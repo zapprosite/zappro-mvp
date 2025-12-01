@@ -34,7 +34,7 @@ export default function StoresExample() {
         ) : (
           <button
             className="w-fit rounded bg-gray-200 px-3 py-1"
-            onClick={() => login({ id: "u1", email: "demo@zap.pro" }, "demo-token")}
+            onClick={() => login({ id: 1, email: "demo@zap.pro" }, "demo-token")}
           >
             Mock Login
           </button>
@@ -126,4 +126,3 @@ export default function StoresExample() {
     </div>
   );
 }
-

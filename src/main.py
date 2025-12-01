@@ -1,6 +1,7 @@
 """ZapPro API entrypoint with security hardening middleware."""
 
 import logging
+from contextlib import asynccontextmanager
 from typing import Any, Dict, List
 
 from fastapi import Depends, FastAPI, HTTPException, Request, status
@@ -62,10 +63,33 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     """Instantiate and configure the FastAPI application."""
     settings = settings or get_settings()
 
+    @asynccontextmanager
+    async def lifespan(app: FastAPI):
+        try:
+            init_db()
+        except Exception:  # pragma: no cover - best-effort dev path
+            LOGGER.debug("init_db skipped or failed (likely non-SQLite backend)")
+
+        try:
+            paths = [getattr(route, "path", "<unknown>") for route in app.routes]
+            LOGGER.info(
+                "event=startup service=api route_count=%d routes=%s",
+                len(paths),
+                paths,
+            )
+        except Exception:  # pragma: no cover - diagnostic
+            LOGGER.debug("event=startup route logging failed", exc_info=True)
+
+        try:
+            yield
+        finally:
+            LOGGER.info("event=shutdown service=api")
+
     app = FastAPI(
         title=settings.app_name,
         version=__version__,
         middleware=_build_middlewares(settings),
+        lifespan=lifespan,
     )
 
     app.include_router(materials.router, prefix="/api/v1")
@@ -353,19 +377,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         if not success:
             raise HTTPException(status_code=404, detail="Task not found")
 
-    # Initialize DB tables for local dev (SQLite). In production, use Alembic.
-    try:
-        init_db()
-    except Exception:  # pragma: no cover - best-effort dev path
-        LOGGER.debug("init_db skipped or failed (likely non-SQLite backend)")
-
-    @app.on_event("startup")
-    async def _log_routes() -> None:  # pragma: no cover - diagnostic
-        try:
-            paths = [getattr(r, "path", "<unknown>") for r in app.routes]
-            LOGGER.info("Registered routes: %s", paths)
-        except Exception:
-            pass
+    @app.get(
+        "/healthz",
+        response_model=Dict[str, str],
+        tags=["internal"],
+        summary="Service health probe",
+    )
+    async def healthz() -> Dict[str, str]:
+        """Simple readiness endpoint for orchestrators."""
+        return {"status": "ok"}
 
     return app
 

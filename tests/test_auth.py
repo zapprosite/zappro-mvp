@@ -1,3 +1,4 @@
+import asyncio
 from datetime import timedelta
 from uuid import uuid4
 
@@ -61,9 +62,11 @@ def test_refresh_with_valid_token_returns_new_access_token():
 def test_refresh_with_expired_token_returns_401():
     client = TestClient(app)
     email, _ = _register_user(client)
-    expired_refresh = generate_refresh_token(
-        {"sub": email},
-        expires_delta=timedelta(seconds=-5),
+    expired_refresh = asyncio.run(
+        generate_refresh_token(
+            {"sub": email},
+            expires_delta=timedelta(seconds=-5),
+        )
     )
 
     response = client.post(
@@ -71,6 +74,7 @@ def test_refresh_with_expired_token_returns_401():
         json={"refresh_token": expired_refresh},
     )
     assert response.status_code == 401
+    assert response.json()["detail"] == "Token expired"
 
 
 def test_refresh_with_invalid_token_returns_401():
@@ -82,3 +86,21 @@ def test_refresh_with_invalid_token_returns_401():
         json={"refresh_token": "not-a-valid-token"},
     )
     assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid token"
+
+
+def test_protected_route_without_token_returns_missing_error():
+    client = TestClient(app)
+    response = client.get("/api/v1/projects/1/tasks")
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Missing token"
+
+
+def test_protected_route_with_invalid_token_returns_invalid_error():
+    client = TestClient(app)
+    response = client.get(
+        "/api/v1/projects/1/tasks",
+        headers={"Authorization": "Bearer invalid.token.value"},
+    )
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid token"

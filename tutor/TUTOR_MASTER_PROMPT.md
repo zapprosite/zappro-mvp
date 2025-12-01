@@ -61,10 +61,10 @@ text
 | Arquivo | O que é | Quando ler |
 |---------|---------|-----------|
 | **PRD.md** | Fonte única de verdade (produto, features, tech stack) | SEMPRE (antes de qualquer tarefa) |
-| **docs/AGENTS.md** | Regras de operação + multi-agent orchestration | SEMPRE |
-| **docs/SECURITY.md** | Policies, secrets, compliance | Se tocar em segurança |
-| **docs/WORKFLOW.md** | Git workflow, PR process, branches | Se fizer commit |
-| **docs/DECISION.md** | Matriz refactor vs rewrite (módulos pré-avaliados) | Se refatorar código |
+| **docs/CODEX_RUNBOOK.md** | Runbook principal com regras, MCC e validações | SEMPRE |
+| **docs/CODEX_RUNBOOK.md** | Runbook canônico (T1..T8, políticas, processos, validações) | SEMPRE |
+| **docs/api-endpoints.md** | Catálogo REST com exemplos e envelopes | Antes de mudanças em APIs |
+| **docs/INDEX.md** | Índice dos documentos ativos + mapa de dependências | Para contextualizar onde estão as fontes |
 | **tutor/progress.state.md** | Status sprint atual, próximas tarefas | SEMPRE (antes de começar) |
 | **tutor/conversation.last_tutor.md** | Último progresso feito | SEMPRE (para contexto) |
 | **.env.example** | Variáveis de ambiente (sem valores) | Se tocar em config |
@@ -79,9 +79,10 @@ text
 
 Ler tutor/progress.state.md (aonde estamos)
 Ler tutor/conversation.last_tutor.md (o que foi feito)
-Ler docs/AGENTS.md (rules atuais)
+Ler docs/CODEX_RUNBOOK.md (regras atualizadas)
 Ler PRD.md (escopo + tech stack)
-Ler docs/DECISION.md (se refatorar)
+Ler docs/CODEX_RUNBOOK.md (procedimentos completos, T1..T8)
+Ler docs/api-endpoints.md (se for tocar em APIs ou integrações REST)
 Ler .env.example (se tocar em config)
 text
 
@@ -122,14 +123,14 @@ text
 ❌ Cometer secrets em código: use \`.env.example\` + GitHub Actions secrets  
 ❌ Ignorar test failures: corrigir ou escalate (não skip)  
 ❌ Fazer changes massivas: 1 PR = 1 feature (max 300 linhas)  
-❌ Reescrever sem DECISION.md: aplicar matriz antes  
+❌ Reescrever sem `docs/_archive/DECISION.md`: aplicar matriz antes  
 ❌ Deixar loops rodando: loop_guard detecta + aborta  
 ❌ Combinar múltiplas features: atomic commits only  
 
 ### SEMPRE
 ✅ Ler PRD.md + AGENTS.md antes de começar  
 ✅ Validar com \`make lint\` + \`make test\` antes de commit  
-✅ Verificar DECISION.md se refatorar (score ≤12 = refactor, ≥13 = rewrite)  
+✅ Verificar `docs/_archive/DECISION.md` se refatorar (score ≤12 = refactor, ≥13 = rewrite)  
 ✅ Usar relative paths em links internos (\`./docs/file.md\`)  
 ✅ Comentar PR com MCPs usados + justificativa  
 ✅ Atualizar tutor/progress.state.md após conclusão  
@@ -163,7 +164,7 @@ Antes de refatorar, consulte tabela. Se score ≤12 = REFACTOR, ≥13 = REWRITE:
 
 ### Sensitive Files (Read-Only)
 - 🔒 src/utils/security/ — JWT, crypto, auth
-- 🔒 docs/SECURITY.md — policies
+- 🔒 docs/CODEX_RUNBOOK.md — políticas e fluxos canônicos
 - 🔒 .github/secrets/ — GitHub Actions
 
 ### Se Secret Detectado
@@ -343,7 +344,7 @@ Stale 30 days → ARCHIVED (auto move)
 - [ ] Validação passa: \`bash scripts/validate.sh\`
 - [ ] Commits têm mensagens Conventional (feat:, fix:, docs:)
 - [ ] PR aberta com title descritivo + body
-- [ ] DECISION.md atualizado (se novo refactor/rewrite)
+- [ ] `docs/_archive/DECISION.md` atualizado (se novo refactor/rewrite)
 - [ ] tutor/progress.state.md com status COMPLETO
 - [ ] No secrets em código (only .env.example)
 - [ ] Documentação atualizada (README, docs/)
@@ -364,10 +365,10 @@ Stale 30 days → ARCHIVED (auto move)
 ## 📚 REFERÊNCIAS FINAIS
 
 - **tutor/prompt.md** — LLM context template (deprecated, use este arquivo)
-- **docs/AGENTS.md** — Agent rules + orchestration
-- **docs/SECURITY.md** — Security policies
-- **docs/WORKFLOW.md** — Git workflow
-- **docs/DECISION.md** — Refactor vs rewrite matrix
+- **docs/CODEX_RUNBOOK.md** — Agent rules, validações e governança operacional
+- **docs/CODEX_RUNBOOK.md** — Runbook canônico (workflow, políticas, validações)
+- **docs/api-endpoints.md** — Catálogo REST documentado
+- **docs/INDEX.md** — Índice de documentos ativos e mapa de dependências
 - **PRD.md** — Product roadmap + tech stack
 - **README.md** — Quick start
 - **.env.example** — Config variables

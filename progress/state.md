@@ -12,7 +12,7 @@ MVP full-stack funcional, testado, sem loops ou alucinações, governado por Tut
 ## Progresso:
 - [x] CODEx push registrado e sincronizado no origin/main (feat: estrutura tutor anti-loop, governança, e scripts refatorados).
 - [ ] Estrutura de containers docker definida e testada.
-- [ ] Arquivos AGENTS.md, WORKFLOW.md, DECISION.md, LOG.md criados.
+- [ ] AGENTS.md e LOG.md criados; `docs/_archive/WORKFLOW.md` e `docs/_archive/DECISION.md` arquivados.
 - [ ] Scripts (validate, smoke, loop_guard) presentes e testados.
 - [ ] PRD.md atualizado.
 - [ ] Mais tarefas aguardando fatiamento para PR curta.

@@ -2,10 +2,45 @@
 
 import { useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { useAuth } from "@/hooks/use-auth";
 import { useProjects, ProjectRecord } from "@/hooks/use-projects";
+
+const sampleStatusLabels: Record<ProjectRecord["status"], string> = {
+  planning: "Planejamento",
+  active: "Ativo",
+  completed: "Concluído",
+  paused: "Pausado",
+};
+
+const sampleProjects: ProjectRecord[] = [
+  {
+    id: -1,
+    name: "ZapPro Demo",
+    description: "Board demonstrativo com entregas sincronizadas ao backend.",
+    status: "planning",
+    owner_id: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+  {
+    id: -2,
+    name: "Projeto Mostruário",
+    description: "Controle fictício de materiais com estados visuais.",
+    status: "active",
+    owner_id: 0,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  },
+];
 
 import ProjectCard from "./project-card";
 import ProjectForm from "./project-form";
@@ -20,13 +55,67 @@ export default function ProjectsList() {
 
   if (!isAuthenticated) {
     return (
-      <Card>
-        <CardContent className="p-6 text-center">
-          <p className="text-muted-foreground">
-            Faça login para visualizar e gerenciar seus projetos.
-          </p>
-        </CardContent>
-      </Card>
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <p className="text-muted-foreground">
+              Faça login para revisar e gerenciar projetos. Enquanto isso, explore o quadro
+              demonstrativo abaixo.
+            </p>
+          </CardContent>
+        </Card>
+
+        <section
+          aria-label="Projetos de exemplo"
+          className="space-y-4 rounded-2xl border border-white/10 bg-white/5 p-4"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                Amostra viva
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Lista fictícia para validar a interface mesmo sem autenticação.
+              </p>
+            </div>
+          </div>
+          <h1
+            data-testid="projects-heading"
+            className="text-3xl font-bold text-white"
+          >
+            Projects
+          </h1>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {sampleProjects.map((project) => {
+              const updatedAtValue =
+                project.updated_at ?? project.created_at ?? new Date().toISOString();
+              return (
+                <Card
+                  key={`sample-project-${project.id}`}
+                  className="border-dashed border-white/20 bg-slate-950/60 text-white"
+                >
+                  <CardHeader className="space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <CardTitle className="text-lg">{project.name}</CardTitle>
+                      <Badge className="text-xs uppercase tracking-[0.2em]">
+                        {sampleStatusLabels[project.status]}
+                      </Badge>
+                    </div>
+                    <CardDescription className="text-sm text-slate-200">
+                      {project.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-2">
+                    <p className="text-xs text-muted-foreground">
+                      Atualizado em {new Date(updatedAtValue).toLocaleDateString("pt-BR")}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </section>
+      </div>
     );
   }
 
@@ -69,15 +158,17 @@ export default function ProjectsList() {
   }
 
   return (
-    <section className="space-y-6">
+    <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">Meus Projetos</h2>
+          <p className="text-sm uppercase tracking-[0.3em] text-muted-foreground">
+            Active portfolio
+          </p>
           <p className="text-sm text-muted-foreground">
-            Cadastre, edite e acompanhe seus projetos ativos.
+            Capture new work, update status, and export coverage insights.
           </p>
         </div>
-        <Button onClick={handleNewProject}>Novo Projeto</Button>
+        <Button onClick={handleNewProject}>New project</Button>
       </div>
 
       {isLoading && <p>Carregando projetos...</p>}
@@ -102,6 +193,6 @@ export default function ProjectsList() {
           />
         ))}
       </div>
-    </section>
+    </div>
   );
 }

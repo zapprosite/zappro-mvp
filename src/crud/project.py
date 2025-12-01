@@ -31,7 +31,7 @@ def get_project(
 
 
 def create_project(db: Session, project: ProjectCreate, owner_id: int) -> Project:
-    db_project = Project(**project.dict(), owner_id=owner_id)
+    db_project = Project(**project.model_dump(), owner_id=owner_id)
     db.add(db_project)
     db.commit()
     db.refresh(db_project)
@@ -49,7 +49,7 @@ def update_project(
     if not db_project:
         return None
 
-    for field, value in project_update.dict(exclude_unset=True).items():
+    for field, value in project_update.model_dump(exclude_unset=True).items():
         setattr(db_project, field, value)
 
     db.commit()
