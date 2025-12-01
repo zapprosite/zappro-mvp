@@ -62,5 +62,27 @@ services:
       timeout: 5s
       retries: 5
 
+  tests:
+    build:
+      context: .
+      dockerfile: docker/test.Dockerfile
+    env_file:
+      - .env.example
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://zappro:zappro@postgres:5432/zappro}
+      ZAPPRO_ALLOWED_HOSTS: api,localhost,127.0.0.1,testserver
+      ZAPPRO_RATE_LIMIT__MAX_REQUESTS: 300
+      ZAPPRO_RATE_LIMIT__WINDOW_SECONDS: 60
+      ZAPPRO_ENFORCE_HTTPS: "false"
+    volumes:
+      - ./src:/app/src
+      - ./alembic:/app/alembic
+      - ./tests:/app/tests
+      - ./test-results:/app/test-results
+      - ./requirements.txt:/app/requirements.txt
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data:
